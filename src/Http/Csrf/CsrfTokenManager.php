@@ -183,11 +183,13 @@ class CsrfTokenManager
     }
 
     /**
+     * Возвращает CSRF токен для запроса.
+     *
      * @throws JokeException   Если значение не может быть преобразовано в строку - фактически это не возможно
      *                         при стандартном создании объекта запроса
      * @throws RandomException если не удается найти подходящий источник случайности
      */
-    private function getServerToken(HttpRequest $request): string
+    public function getServerToken(HttpRequest $request): string
     {
         $token = $request->session->getString(self::CSRF_TOKEN_NAME, '');
         if ('' === $token) {
