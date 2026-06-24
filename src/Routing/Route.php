@@ -71,13 +71,15 @@ class Route implements RouteInterface
      * @param HttpMethod                                                $method           HTTP-метод
      * @param array{class-string|object,non-empty-string}|object|string $handler          Обработчик маршрута (callable любого поддерживаемого типа)
      * @param string                                                    $name             Имя маршрута (опционально, для программного доступа)
+     *
+     * @todo Разобраться с необходимостью параметра name
      */
     public function __construct(
         private readonly ServiceContainer $serviceContainer,
         private readonly string $path,
         HttpMethod $method,
         private readonly array|object|string $handler,
-        private readonly string $name = '',
+        public readonly string $name = '',
     ) {
         $this->method = $method;
         $this->middlewares = new MiddlewareCollection();
