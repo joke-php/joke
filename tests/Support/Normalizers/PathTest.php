@@ -30,6 +30,12 @@ final class PathTest extends TestCase
 
         $expectedBase = '/var/www/project' . \DIRECTORY_SEPARATOR;
         self::assertSame($expectedBase, $normalizer->basePath);
+        self::assertSame($expectedBase . 'bootstrap' . \DIRECTORY_SEPARATOR, $normalizer->bootstrapPath);
+        self::assertSame($expectedBase . 'public' . \DIRECTORY_SEPARATOR, $normalizer->publicPath);
+        $expectedBase = $expectedBase . 'var' . \DIRECTORY_SEPARATOR;
+        self::assertSame($expectedBase, $normalizer->varPath);
+        self::assertSame($expectedBase . 'cache' . \DIRECTORY_SEPARATOR, $normalizer->cachePath);
+        self::assertSame($expectedBase . 'log' . \DIRECTORY_SEPARATOR, $normalizer->logPath);
     }
 
     public function testConstructorFailsOnRelativePath(): void

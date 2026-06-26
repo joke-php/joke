@@ -89,6 +89,13 @@ public function __construct(
 Метод `BaseContainer::get` будет выбрасывать исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`,
 если сервис не найден.
 
+### 4. Единая точка информации о путях проекта
+
+Пути проекта необходимо получать через объект Vasoft\Joke\Support\Normalizers\Path (алиас 'normalizer.path'). Будут удалены свойства и методы:
+- Vasoft\Joke\Application::$basePath
+- Vasoft\Joke\Config\Environment::getBasePath()
+- Vasoft\Joke\Config\EnvironmentLoader::getBasePath()
+
 ## Стратегия перехода
 
 Я понимаю важность стабильности для проектов, использующих Joke. Поэтому переход на v2.0 будет проходить в два этапа:

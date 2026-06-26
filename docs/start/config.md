@@ -90,6 +90,7 @@
 ```php
 <?php
 /** @var \Vasoft\Joke\Config\Environment $env */
+/** @var \Vasoft\Joke\Support\Normalizers\Path $paths */
 
 use Vasoft\Joke\Application\KernelConfig;
 use Vasoft\Joke\Logging\Handlers\StreamHandler;
@@ -98,8 +99,8 @@ use Vendor\Project\Providers;
 use Vasoft\Joke\Logging\Logger;
 
 $loggerHandlers = [
-    new StreamHandler($env->getBasePath().'error.log'),
-    new StreamHandler($env->getBasePath().'info.log', LogLevel::INFO, LogLevel::INFO),
+    new StreamHandler($paths->logPath.'error.log'),
+    new StreamHandler($paths->logPath.'info.log', LogLevel::INFO, LogLevel::INFO),
 ];
 
 return new KernelConfig()

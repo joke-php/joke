@@ -84,6 +84,7 @@ interface MessageFormatterInterface
 ```php
 <?php
 /** @var \Vasoft\Joke\Config\Environment $env */
+/** @var \Vasoft\Joke\Support\Normalizers\Path $paths */
 
 use Vasoft\Joke\Application\KernelConfig;
 use Vasoft\Joke\Logging\Handlers\StreamHandler;
@@ -92,13 +93,9 @@ use Vasoft\Joke\Logging\Logger;
 use Vendor\Project\CustomFormatter;
 
 $loggerHandlers = [
-    new StreamHandler($env->getBasePath() . 'var/log/all.log'),
-    new StreamHandler(
-        $env->getBasePath() . 'var/log/info.log',
-        LogLevel::INFO,
-        LogLevel::INFO
-    ),
-    new StreamHandler($env->getBasePath() . 'var/log/error.log', LogLevel::ERROR, formatter: new CustomFormatter()),
+    new StreamHandler($paths->logPath . 'all.log'),
+    new StreamHandler($paths->logPath . 'info.log', LogLevel::INFO, LogLevel::INFO),
+    new StreamHandler($paths->logPath . 'error.log', LogLevel::ERROR, formatter: new CustomFormatter()),
 ];
 
 return new KernelConfig()

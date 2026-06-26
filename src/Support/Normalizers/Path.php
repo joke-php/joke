@@ -17,13 +17,67 @@ use Vasoft\Joke\Config\Exceptions\ConfigException;
  * - Кроссплатформенная поддержка (Windows/Linux/macOS) через определение стиля путей.
  * - Нормализация завершающих разделителей для директорий и файлов.
  */
-final readonly class Path
+final class Path
 {
     /**
      * Абсолютный базовый путь к корневой директории.
      * Всегда заканчивается разделителем директории.
      */
-    public string $basePath;
+    public readonly string $basePath;
+
+    /**
+     * Путь к директории временных и служебных данных (var).
+     *
+     * Используется для хранения кэша, логов и других генерируемых файлов.
+     *
+     * @property string $varPath
+     */
+    public string $varPath {
+        get => $this->basePath . 'var' . \DIRECTORY_SEPARATOR;
+    }
+    /**
+     * Путь к директории bootstrap.
+     *
+     * Содержит скрипты инициализации приложения (например, kernel.php).
+     *
+     * @property string $bootstrapPath
+     */
+    public string $bootstrapPath {
+        get => $this->basePath . 'bootstrap' . \DIRECTORY_SEPARATOR;
+    }
+    /**
+     * Путь к директории кэша.
+     *
+     * Используется для хранения скомпилированных шаблонов, кэша конфигурации
+     * и других временных данных для ускорения работы приложения.
+     *
+     * @property string $cachePath
+     */
+    public string $cachePath {
+        get => $this->varPath . 'cache' . \DIRECTORY_SEPARATOR;
+    }
+    /**
+     * Путь к директории логов.
+     *
+     * Предназначена для хранения файлов журналов событий и ошибок приложения.
+     *
+     * @property string $logPath
+     */
+    public string $logPath {
+        get => $this->varPath . 'log' . \DIRECTORY_SEPARATOR;
+    }
+    /**
+     * Путь к публичной директории.
+     *
+     * Точка входа для веб-сервера. Содержит фронт-контроллер (index.php),
+     * а также публичные ресурсы: CSS, JavaScript, изображения и другие файлы,
+     * доступные напрямую из браузера.
+     *
+     * @property string $publicPath
+     */
+    public string $publicPath {
+        get => $this->basePath . 'public' . \DIRECTORY_SEPARATOR;
+    }
     private bool $isWindows;
 
     /**

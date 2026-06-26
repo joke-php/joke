@@ -138,6 +138,8 @@ readonly class EnvironmentLoader
 
     /**
      * Возвращает базовый путь к проекту.
+     *
+     * @deprecated Будет удален в версии 2.0
      */
     public function getBasePath(): string
     {

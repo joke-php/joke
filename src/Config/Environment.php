@@ -148,6 +148,8 @@ class Environment
 
     /**
      * Возвращает базовый путь к проекту.
+     *
+     * @deprecated В версии 2.0 будет удален
      */
     public function getBasePath(): string
     {
