@@ -171,7 +171,7 @@ final class EnvironmentLoaderTest extends TestCase
         $fileMock = self::getFunctionMock('Vasoft\Joke\Config', 'file');
         $fileMock->expects(self::once())->willReturn(false);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('Unable to load file: ');
+        self::expectExceptionMessageIsOrContains('Unable to load file: ');
 
         $loader->load('dev', 'local', 'testing');
     }

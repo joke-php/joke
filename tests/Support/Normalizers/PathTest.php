@@ -41,7 +41,7 @@ final class PathTest extends TestCase
     public function testConstructorFailsOnRelativePath(): void
     {
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Path must be absolute: config/app');
+        $this->expectExceptionMessageIs('Path must be absolute: config/app');
         $path = 'config/app';
         new Path($path);
     }
@@ -50,7 +50,7 @@ final class PathTest extends TestCase
     public function testConstructorFailsOnNonExistentDirectory(): void
     {
         $this->expectException(ConfigException::class);
-        $this->expectExceptionMessage('Path must be a directory: /fake/path');
+        $this->expectExceptionMessageIs('Path must be a directory: /fake/path');
 
         $isDirMock = $this->getFunctionMock('Vasoft\Joke\Support\Normalizers', 'is_dir');
         $isDirMock->expects(self::once())->willReturn(false);

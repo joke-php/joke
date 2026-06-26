@@ -62,7 +62,7 @@ final class StringCollectionTest extends TestCase
             'varArray' => [123, 'test'],
         ]);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Property "varArray" must be scalar or null to be used as string, got array.');
+        self::expectExceptionMessageIs('Property "varArray" must be scalar or null to be used as string, got array.');
         $collection->getStringOrFail('varArray');
     }
 
@@ -72,7 +72,7 @@ final class StringCollectionTest extends TestCase
             'varArray' => [123, 'test'],
         ]);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('varArray array');
+        self::expectExceptionMessageIs('varArray array');
         $collection->getStringOrFail(
             'varArray',
             invalidTypeFactory: static fn(string $key, string $type) => throw new JokeException($key . ' ' . $type),
@@ -83,7 +83,7 @@ final class StringCollectionTest extends TestCase
     {
         $collection = new StringCollection([]);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Property "varNotDefined" does not exist.');
+        self::expectExceptionMessageIs('Property "varNotDefined" does not exist.');
         $collection->getStringOrFail('varNotDefined');
     }
 
@@ -91,7 +91,7 @@ final class StringCollectionTest extends TestCase
     {
         $collection = new StringCollection([]);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('varNotDefined not found');
+        self::expectExceptionMessageIs('varNotDefined not found');
         $collection->getStringOrFail(
             'varNotDefined',
             static fn(string $key) => throw new JokeException($key . ' not found'),

@@ -20,7 +20,7 @@ final class LoggerTest extends TestCase
     public function testEmptyHandlers(): void
     {
         self::expectException(LogException::class);
-        self::expectExceptionMessage('At least one log handler must be provided.');
+        self::expectExceptionMessageIs('At least one log handler must be provided.');
         new Logger([]);
     }
 

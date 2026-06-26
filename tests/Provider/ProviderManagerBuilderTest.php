@@ -44,7 +44,7 @@ final class ProviderManagerBuilderTest extends TestCase
             ->willThrowException(new \Exception('Test Exception'));
 
         self::expectException(ProviderException::class);
-        self::expectExceptionMessage('Maybe some constructor arguments are not resolvable');
+        self::expectExceptionMessageIsOrContains('Maybe some constructor arguments are not resolvable');
         ProviderManagerBuilder::build($this->container, [$simpleClass], []);
     }
 
@@ -68,7 +68,7 @@ final class ProviderManagerBuilderTest extends TestCase
         $this->resolver->method('resolveForConstructor')
             ->willReturn([]);
         self::expectException(ProviderException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Provider class "stdClass" must implement Vasoft\Joke\Contract\Provider\ServiceProviderInterface',
         );
         ProviderManagerBuilder::build($this->container, [\stdClass::class], []);
@@ -83,7 +83,7 @@ final class ProviderManagerBuilderTest extends TestCase
             ->willThrowException(new \Exception('Test Exception'));
 
         self::expectException(ProviderException::class);
-        self::expectExceptionMessage('Providers cannot be both regular and deferred');
+        self::expectExceptionMessageIsOrContains('Providers cannot be both regular and deferred');
         ProviderManagerBuilder::build($this->container, [$simpleClass], [$simpleClass]);
     }
 }

@@ -123,7 +123,7 @@ final class BinaryResponseTest extends TestCase
 
         $instance = new DummyFileResponse();
         self::expectException(NotFoundException::class);
-        self::expectExceptionMessage('File not found');
+        self::expectExceptionMessageIs('File not found');
         $instance->load($tempFile);
     }
 

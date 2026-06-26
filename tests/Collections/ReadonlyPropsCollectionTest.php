@@ -61,7 +61,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     public function testGetOrFailDefault(): void
     {
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Property "unknown" does not exist.');
+        self::expectExceptionMessageIs('Property "unknown" does not exist.');
         self::$collection->getOrFail('unknown');
     }
 
@@ -77,7 +77,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     public function testGetOrFailCustom(): void
     {
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('unknown does not exist.');
+        self::expectExceptionMessageIs('unknown does not exist.');
         self::$collection->getOrFail(
             'unknown',
             static fn(string $key) => new ConfigException($key . ' does not exist.'),
@@ -136,7 +136,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     {
         $collection = new PropsCollection(['value' => $value]);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage("Property \"value\" cannot be converted to int, got {$type}.");
+        self::expectExceptionMessageIs("Property \"value\" cannot be converted to int, got {$type}.");
         $collection->getInt('value', 1);
     }
 
@@ -154,7 +154,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
         $value = 123.125;
         $collection = new PropsCollection(['value' => $value]);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage(sprintf('value: %0.2f', $value));
+        self::expectExceptionMessageIs(sprintf('value: %0.2f', $value));
         $collection->getInt('value', 1, exceptionFactory: static fn(
             $key,
             $value,
@@ -189,7 +189,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
         ]);
 
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('Property "value" cannot be converted to string, got array.');
+        self::expectExceptionMessageIs('Property "value" cannot be converted to string, got array.');
         $collection->getString('value', 'def');
     }
 
@@ -200,7 +200,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
         ]);
 
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('value: 4,5,6');
+        self::expectExceptionMessageIs('value: 4,5,6');
         $collection->getString('value', 'def', exceptionFactory: static fn(
             $key,
             $value,
@@ -257,7 +257,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     {
         $collection = new PropsCollection(['value' => $value]);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage("Property \"value\" cannot be converted to bool, got {$type}.");
+        self::expectExceptionMessageIs("Property \"value\" cannot be converted to bool, got {$type}.");
         $collection->getBool('value', true);
     }
 
@@ -274,7 +274,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     {
         $collection = new PropsCollection(['value' => [4, 5, 6]]);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('value: 4,5,6');
+        self::expectExceptionMessageIs('value: 4,5,6');
         $collection->getBool('value', false, exceptionFactory: static fn(
             $key,
             $value,
@@ -312,7 +312,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     {
         $collection = new PropsCollection(['test' => $value]);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage("Property \"test\" cannot be converted to float, got {$type}.");
+        self::expectExceptionMessageIs("Property \"test\" cannot be converted to float, got {$type}.");
         $collection->getFloat('test', 1);
     }
 
@@ -328,7 +328,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     {
         $collection = new PropsCollection(['test' => 'apple']);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('test: apple');
+        self::expectExceptionMessageIs('test: apple');
         $collection->getFloat('test', 1, exceptionFactory: static fn(
             $key,
             $value,

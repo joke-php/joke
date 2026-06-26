@@ -30,7 +30,7 @@ final class AbstractConfigTest extends TestCase
         $example->freeze();
         self::assertTrue($example->isFrozen());
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Cannot modify frozen configuration of [Vasoft\Joke\Tests\Fixtures\Config\SingleConfig].',
         );
         $example->setValue(15);

@@ -78,7 +78,7 @@ final class CorsConfigTest extends TestCase
             ->setOrigins(['*']);
         $config->freeze();
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Cannot use wildcard origin when allowCredentials is enabled. Please specify explicit domains.',
         );
         $test = $config->{$name};

@@ -21,7 +21,7 @@ final class ServiceContainerTest extends TestCase
         $container->setRouter(new \stdClass());
 
         $this->expectException(ContainerException::class);
-        $this->expectExceptionMessage('Router service is not available or not of correct type.');
+        $this->expectExceptionMessageIs('Router service is not available or not of correct type.');
 
         $container->getRouter();
     }

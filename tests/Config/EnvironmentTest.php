@@ -190,7 +190,7 @@ final class EnvironmentTest extends TestCase
 
         $env = new Environment($this->mockLoader);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('The environment "PROPS" does not exist.');
+        self::expectExceptionMessageIs('The environment "PROPS" does not exist.');
         $value = $env->getOrFail('props');
     }
 
@@ -201,7 +201,7 @@ final class EnvironmentTest extends TestCase
 
         $env = new Environment($this->mockLoader);
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('Not exists');
+        self::expectExceptionMessageIs('Not exists');
         $env->getOrFail('props', 'Not exists');
     }
 

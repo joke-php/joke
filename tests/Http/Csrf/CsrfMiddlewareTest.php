@@ -37,7 +37,7 @@ final class CsrfMiddlewareTest extends TestCase
     public function testRequiredTokenManager(): void
     {
         self::expectException(MiddlewareException::class);
-        self::expectExceptionMessage('CsrfMiddleware requires a valid csrf token manager.');
+        self::expectExceptionMessageIs('CsrfMiddleware requires a valid csrf token manager.');
         new CsrfMiddleware(new ResponseBuilder(new ApplicationConfig(), self::$container));
     }
 

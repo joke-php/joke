@@ -160,7 +160,7 @@ final class StreamHandlerTest extends TestCase
         $salt = random_int(1000, 99999);
         $path = "/nonexistent/{$salt}/dir";
         self::expectException(LogException::class);
-        self::expectExceptionMessage("Unable to create directory '{$path}'.");
+        self::expectExceptionMessageIs("Unable to create directory '{$path}'.");
         new StreamHandler($path . '/file.log');
     }
 
@@ -174,7 +174,7 @@ final class StreamHandlerTest extends TestCase
         $fOpen->expects(self::once())->willReturn(false);
 
         self::expectException(LogException::class);
-        self::expectExceptionMessage("Unable to open '{$file}'.");
+        self::expectExceptionMessageIs("Unable to open '{$file}'.");
         new StreamHandler($file);
     }
 }

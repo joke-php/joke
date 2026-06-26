@@ -156,7 +156,7 @@ final class RouterTest extends TestCase
         $router->get('/get', static fn() => 'get response', 'route-get');
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/unknown']);
         self::expectException(NotFoundException::class);
-        self::expectExceptionMessage('Route not found');
+        self::expectExceptionMessageIs('Route not found');
 
         $router->dispatch($request);
     }

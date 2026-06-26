@@ -25,7 +25,7 @@ final class KernelServiceProviderTest extends TestCase
     public function testUnknownConfig(): void
     {
         $this->expectException(UnknownConfigException::class);
-        $this->expectExceptionMessage('Unknown config class: unknown');
+        $this->expectExceptionMessageIs('Unknown config class: unknown');
         KernelServiceProvider::buildConfig('unknown', new ServiceContainer());
     }
 

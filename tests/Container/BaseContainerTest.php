@@ -135,7 +135,7 @@ final class BaseContainerTest extends TestCase
         $container->registerAlias('b', 'a');
 
         self::expectException(ContainerException::class);
-        self::expectExceptionMessage('Circular alias detected: a-b.');
+        self::expectExceptionMessageIs('Circular alias detected: a-b.');
         $container->get('a');
     }
 

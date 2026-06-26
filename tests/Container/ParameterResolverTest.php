@@ -75,7 +75,7 @@ final class ParameterResolverTest extends TestCase
         $callback = static fn(int $a, \stdClass $b) => $a + $b->value;
         $resolver = new ParameterResolver(self::$serviceContainer);
         self::expectException(AutowiredException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Failed to autowire parameter "$b": expected type "stdClass" cannot be resolved or is incompatible with the provided value.',
         );
         $resolver->resolveForCallable($callback, ['b' => 1, 'a' => 2]);
@@ -95,7 +95,7 @@ final class ParameterResolverTest extends TestCase
         $callback = static fn(int $a, \SingleServiceUnknown $b) => $a + $b->getValue();
         $resolver = new ParameterResolver(self::$serviceContainer);
         self::expectException(AutowiredException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Failed to autowire parameter "$b": expected type "SingleServiceUnknown" cannot be resolved or is incompatible with the provided value.',
         );
         $args = $resolver->resolveForCallable($callback, ['a' => 12]);
@@ -106,7 +106,7 @@ final class ParameterResolverTest extends TestCase
         $callback = static fn(int $a, FakeExample $b) => $a + $b->value;
         $resolver = new ParameterResolver(self::$serviceContainer);
         self::expectException(AutowiredException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Failed to autowire parameter "$b": expected type "Vasoft\Joke\Tests\Fixtures\FakeExample" cannot be resolved or is incompatible with the provided value.',
         );
         $resolver->resolveForCallable($callback, ['a' => 12]);
@@ -117,7 +117,7 @@ final class ParameterResolverTest extends TestCase
         $callback = static fn(int $a, $b) => $a + $b->getValue();
         $resolver = new ParameterResolver(self::$serviceContainer);
         self::expectException(AutowiredException::class);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Failed to autowire parameter "$b": expected type "scalar" cannot be resolved or is incompatible with the provided value.',
         );
         $resolver->resolveForCallable($callback, ['a' => 12]);
@@ -160,7 +160,7 @@ final class ParameterResolverTest extends TestCase
         $resolver = new ParameterResolver($container);
 
         $this->expectException(ParameterResolveException::class);
-        $this->expectExceptionMessage('Not a valid callback');
+        $this->expectExceptionMessageIs('Not a valid callback');
         $resolver->resolveForCallable(new \stdClass());
     }
 
@@ -183,7 +183,7 @@ final class ParameterResolverTest extends TestCase
         $resolver = new ParameterResolver($container);
 
         $this->expectException(ParameterResolveException::class);
-        $this->expectExceptionMessage('Test Exception');
+        $this->expectExceptionMessageIs('Test Exception');
         $this->expectExceptionCode($code);
         $resolver->resolveForCallable('Totally\NonExistent\ClassName');
     }

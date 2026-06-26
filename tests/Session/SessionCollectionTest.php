@@ -61,7 +61,7 @@ final class SessionCollectionTest extends TestCase
         $session->reset(['foo' => 'bar']);
 
         self::expectException(SessionException::class);
-        self::expectExceptionMessage('Readonly session mode. Can\'t write');
+        self::expectExceptionMessageIs('Readonly session mode. Can\'t write');
         $session->save();
     }
 
@@ -74,7 +74,7 @@ final class SessionCollectionTest extends TestCase
         $session = new SessionCollection([]);
 
         self::expectException(SessionException::class);
-        self::expectExceptionMessage('Readonly session mode. Can\'t write');
+        self::expectExceptionMessageIs('Readonly session mode. Can\'t write');
         $session->load();
     }
 

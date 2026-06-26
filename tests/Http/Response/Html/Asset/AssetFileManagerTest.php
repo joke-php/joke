@@ -92,7 +92,7 @@ final class AssetFileManagerTest extends TestCase
         $file = '/some/path/to/' . random_int(1000, 9999) . '-file.php';
         $manager = new AssetFileManager('', '');
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Asset file not found: ' . $file);
+        self::expectExceptionMessageIs('Asset file not found: ' . $file);
         $manager->process($file, '');
     }
 
@@ -101,7 +101,7 @@ final class AssetFileManagerTest extends TestCase
         $file = '/some/path/to/' . random_int(1000, 9999) . '-file.php';
         $manager = new AssetFileManager(self::$projectPath, self::$documentRoot);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Asset file not found: ' . $file);
+        self::expectExceptionMessageIs('Asset file not found: ' . $file);
         $manager->process($file, self::$assetUri);
     }
 
@@ -110,7 +110,7 @@ final class AssetFileManagerTest extends TestCase
         $file = self::$documentRoot . random_int(1000, 9999) . '-file.php';
         $manager = new AssetFileManager('', '');
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Asset file not found: ' . $file);
+        self::expectExceptionMessageIs('Asset file not found: ' . $file);
         $manager->process($file, '');
     }
 
@@ -121,7 +121,7 @@ final class AssetFileManagerTest extends TestCase
         $manager = new AssetFileManager(self::$projectPath, self::$documentRoot);
 
         self::expectException(JokeException::class);
-        self::expectExceptionMessage("Asset path outside allowed {$file} directory.");
+        self::expectExceptionMessageIs("Asset path outside allowed {$file} directory.");
         $manager->process($file, self::$assetUri);
     }
 
@@ -196,7 +196,7 @@ final class AssetFileManagerTest extends TestCase
         $manager = new AssetFileManager(self::$projectPath, self::$documentRoot);
 
         self::expectException(JokeException::class);
-        self::expectExceptionMessage("Unable to open file for locking: {$expectedFile}.");
+        self::expectExceptionMessageIs("Unable to open file for locking: {$expectedFile}.");
 
         $manager->process(self::$outsideFile, self::$assetUri);
     }
@@ -210,7 +210,7 @@ final class AssetFileManagerTest extends TestCase
             ->expects(self::once())
             ->willReturn(false);
         self::expectException(JokeException::class);
-        self::expectExceptionMessage('Unable to copy asset from ' . self::$outsideFile . " to {$expectedFile}");
+        self::expectExceptionMessageIs('Unable to copy asset from ' . self::$outsideFile . " to {$expectedFile}");
         $manager->process(self::$outsideFile, self::$assetUri);
     }
 
@@ -227,7 +227,7 @@ final class AssetFileManagerTest extends TestCase
                 return 1 !== $checked;
             });
         self::expectException(JokeException::class);
-        self::expectExceptionMessage("Unable to create directory '{$expectedDir}'.");
+        self::expectExceptionMessageIs("Unable to create directory '{$expectedDir}'.");
         $manager->process(self::$outsideFile, self::$assetUri);
     }
 }

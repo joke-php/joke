@@ -97,7 +97,7 @@ final class CsrfTokenManagerTest extends TestCase
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/csrf']);
         $request->session->set(CsrfTokenManager::CSRF_TOKEN_NAME, $expectToken);
         self::expectException(CsrfMismatchException::class);
-        self::expectExceptionMessage('CSRF token mismatch');
+        self::expectExceptionMessageIs('CSRF token mismatch');
         $this->tokenManager->validate($request);
     }
 
@@ -110,7 +110,7 @@ final class CsrfTokenManagerTest extends TestCase
         );
         $request->session->set(CsrfTokenManager::CSRF_TOKEN_NAME, $expectToken);
         self::expectException(CsrfMismatchException::class);
-        self::expectExceptionMessage('CSRF token mismatch');
+        self::expectExceptionMessageIs('CSRF token mismatch');
         $this->tokenManager->validate($request);
     }
 

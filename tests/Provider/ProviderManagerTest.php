@@ -130,7 +130,7 @@ final class ProviderManagerTest extends TestCase
         $manager = ProviderManagerBuilder::build($this->container, [$classA, $classB], []);
 
         $this->expectException(ProviderException::class);
-        $this->expectExceptionMessage('Circular dependency detected');
+        $this->expectExceptionMessageIsOrContains('Circular dependency detected');
 
         $manager->register();
     }
@@ -143,7 +143,7 @@ final class ProviderManagerTest extends TestCase
         $manager = ProviderManagerBuilder::build($this->container, [$class], []);
 
         $this->expectException(ServiceNotFoundException::class);
-        $this->expectExceptionMessage('NonExistentService');
+        $this->expectExceptionMessageIsOrContains('NonExistentService');
 
         $manager->register();
     }
@@ -166,7 +166,7 @@ final class ProviderManagerTest extends TestCase
         $manager->register();
 
         $this->expectException(ServiceNotFoundException::class);
-        $this->expectExceptionMessage('NonExistentService');
+        $this->expectExceptionMessageIsOrContains('NonExistentService');
 
         $manager->boot();
     }
@@ -180,7 +180,7 @@ final class ProviderManagerTest extends TestCase
         $manager = ProviderManagerBuilder::build($this->container, [], [$classA, $classB]);
 
         $this->expectException(MultipleProvideException::class);
-        $this->expectExceptionMessage('SharedService');
+        $this->expectExceptionMessageIsOrContains('SharedService');
 
         $manager->register();
     }

@@ -53,7 +53,7 @@ final class ResponseBuilderTest extends TestCase
     {
         $config = new ApplicationConfig()->setResponseClass(JsonResponse::class);
         $builder = new ResponseBuilder($config, self::$container);
-        self::expectExceptionMessage(
+        self::expectExceptionMessageIs(
             'Cannot assign string to property Vasoft\Joke\Http\Response\JsonResponse::$body of type array',
         );
         $builder->make('Test');

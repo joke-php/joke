@@ -61,7 +61,7 @@ final class HttpRequestTest extends TestCase
     {
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'wrong']);
         self::expectException(WrongRequestMethodException::class);
-        self::expectExceptionMessage('Wrong request method: WRONG');
+        self::expectExceptionMessageIs('Wrong request method: WRONG');
         $test = $request->method;
     }
 

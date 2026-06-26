@@ -267,7 +267,7 @@ final class ApplicationTest extends TestCase
     {
         self::writeKernelBootstrap('new \Vasoft\Joke\Tests\Fixtures\Config\SingleConfig();');
         self::expectException(ConfigException::class);
-        self::expectExceptionMessage('kernel.php must return a KernelConfig instance.');
+        self::expectExceptionMessageIs('kernel.php must return a KernelConfig instance.');
         new Application(self::$basePath, '', new ServiceContainer());
     }
 
@@ -382,7 +382,7 @@ final class ApplicationTest extends TestCase
             );
 
         self::expectException(MiddlewareException::class);
-        self::expectExceptionMessage($expectMessage);
+        self::expectExceptionMessageIs($expectMessage);
         new Application(self::$basePath, '', $container);
     }
 

@@ -93,28 +93,28 @@ final class CookieTest extends TestCase
     public function testInvalidPath(): void
     {
         self::expectException(CookieException::class);
-        self::expectExceptionMessage('example;.com is not a valid path.');
+        self::expectExceptionMessageIsOrContains('example;.com is not a valid path.');
         new Cookie('example', 'Test value', path: 'example;.com');
     }
 
     public function testInvalidName(): void
     {
         self::expectException(CookieException::class);
-        self::expectExceptionMessage('Inva%lid is not a valid cookie name.');
+        self::expectExceptionMessageIs('Inva%lid is not a valid cookie name.');
         new Cookie('Inva%lid', 'Test value');
     }
 
     public function testInvalidDomain(): void
     {
         self::expectException(CookieException::class);
-        self::expectExceptionMessage('example;.com is not a valid domain.');
+        self::expectExceptionMessageIs('example;.com is not a valid domain.');
         new Cookie('example', 'Test value', domain: 'example;.com');
     }
 
     public function testEmptyDomain(): void
     {
         self::expectException(CookieException::class);
-        self::expectExceptionMessage('Domain cannot be empty.');
+        self::expectExceptionMessageIs('Domain cannot be empty.');
         new Cookie('example', 'Test value', domain: '');
     }
 }

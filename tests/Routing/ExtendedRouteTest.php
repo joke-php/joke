@@ -64,7 +64,7 @@ final class ExtendedRouteTest extends TestCase
             ->willReturn([]);
 
         $this->expectException(ParameterResolveException::class);
-        $this->expectExceptionMessage('Not a callable handler');
+        $this->expectExceptionMessageIs('Not a callable handler');
 
         $route->run($this->request);
     }
@@ -86,7 +86,7 @@ final class ExtendedRouteTest extends TestCase
             ->willReturn([]);
 
         $this->expectException(ParameterResolveException::class);
-        $this->expectExceptionMessage('Not a callable handler');
+        $this->expectExceptionMessageIs('Not a callable handler');
 
         $route->run($this->request);
     }
@@ -104,7 +104,7 @@ final class ExtendedRouteTest extends TestCase
         );
 
         $this->expectException(JokeException::class);
-        $this->expectExceptionMessage('Unsupported route handler.');
+        $this->expectExceptionMessageIs('Unsupported route handler.');
 
         $route->run($this->request);
     }
