@@ -65,6 +65,9 @@ use App\Contracts\MailInterface;
 
 class MailServiceProvider extends AbstractProvider
 {
+    public function __construct(
+        private readonly ServiceContainer $serviceContainer,
+    ) {}
     // Опционально: указываем, какие сервисы предоставляет этот провайдер
     public function provides(): array
     {
@@ -74,15 +77,13 @@ class MailServiceProvider extends AbstractProvider
     public function register(): void
     {
         // Регистрируем сервис как одиночку
-        $this->app->singleton(MailInterface::class, function ($app) {
-            return new MailService($app->get('config')->get('mail.driver'));
-        });
+        $this->serviceContainer->registerSingleton(MailInterface::class, MailService::class);
     }
 
     public function boot(): void
     {
         // Используем сервис после его регистрации
-        $mailer = $this->app->make(MailInterface::class);
+        $mailer = $this->serviceContainer->get(MailInterface::class);
         $mailer->connect();
     }
 }
@@ -106,6 +107,10 @@ use App\Contracts\MailInterface;
 class MailServiceProvider extends AbstractProvider
     implements ConfigurableServiceProviderInterface
 {
+    public function __construct(
+        private readonly ServiceContainer $serviceContainer,
+    ) {}
+
     public function provides(): array
     {
         return [MailInterface::class];
@@ -113,16 +118,12 @@ class MailServiceProvider extends AbstractProvider
 
     public function register(): void
     {
-        $this->app->singleton(MailInterface::class, function ($app) {
-            // Получаем конфиг через типизированный класс
-            $config = $app->get(MailConfig::class);
-            return new MailService($config->getDriver());
-        });
+        $this->serviceContainer->registerSingleton(MailInterface::class, MailService::class);
     }
 
     public function boot(): void
     {
-        $mailer = $this->app->make(MailInterface::class);
+        $mailer = $this->serviceContainer->get(MailInterface::class);
         $mailer->connect();
     }
     
@@ -220,10 +221,7 @@ class PdfServiceProvider extends AbstractProvider
 
     public function register(): void
     {
-        $this->app->singleton(PdfGeneratorInterface::class, function ($app) {
-            // Тяжелая инициализация, которая произойдет только при первом запросе
-            return new PdfGenerator($app->make(\App\Contracts\ConfigInterface::class));
-        });
+        $this->serviceContainer->registerSingleton(PdfGeneratorInterface::class, PdfGenerator::class);
     }
 
     public function boot(): void
