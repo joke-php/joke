@@ -25,8 +25,6 @@ use Vasoft\Joke\Support\FileSystem;
  *
  * include $cache->path;
  * ```
- *
- * @todo В версии 2.0 переделать на использование сервиса FileSystem
  */
 class FileRelatedCache implements FileRelatedCacheInterface
 {
