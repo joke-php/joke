@@ -30,3 +30,4 @@
 - [ ] HtmlPageResponse в качестве основного вместо HtmlResponse
 - [ ] FileRelatedCache переделать на использование сервиса FileSystem 
 - [ ] BinaryResponse использование сервиса FileSystem
+- [ ] EnvironmentLoader - проверить нет ли необходимости использовать FileSystem

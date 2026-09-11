@@ -105,7 +105,7 @@ return new ApplicationConfig()
 
 ### 4. Единая точка информации о путях проекта
 
-Пути проекта необходимо получать через объект Vasoft\Joke\Support\FileSystem (алиас 'normalizer.path'). Будут удалены
+Пути проекта необходимо получать через объект Vasoft\Joke\Support\FileSystem (алиас 'normalizer.path'). Удалены
 свойства и методы:
 
 - Vasoft\Joke\Application::$basePath
