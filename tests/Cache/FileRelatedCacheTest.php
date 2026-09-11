@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Tests\Cache;
 
 use Vasoft\Joke\Cache\FileRelatedCache;
 use PHPUnit\Framework\TestCase;
+use Vasoft\Joke\Support\FileSystem;
 
 /**
  * @internal
@@ -15,14 +16,16 @@ use PHPUnit\Framework\TestCase;
 final class FileRelatedCacheTest extends TestCase
 {
     private string $cachePath;
+    private FileSystem $fs;
+    private string $basePath;
 
     public function testCache(): void
     {
         $content = microtime();
-        $cachedFile = $this->cachePath . 'example1.php';
+        $cachedFile = $this->fs->atCache($this->cachePath) . 'example1.php';
 
         file_put_contents($cachedFile, $content);
-        $cache = new FileRelatedCache($this->cachePath, $cachedFile, 30);
+        $cache = new FileRelatedCache($this->fs, $this->cachePath, $cachedFile, 30);
         self::assertFalse($cache->exists());
         $cache->set($content);
         self::assertTrue($cache->exists());
@@ -32,10 +35,10 @@ final class FileRelatedCacheTest extends TestCase
     public function testCacheTtl(): void
     {
         $content = microtime();
-        $cachedFile = $this->cachePath . 'example2.php';
+        $cachedFile = $this->fs->atCache($this->cachePath) . 'example2.php';
 
         file_put_contents($cachedFile, $content);
-        $cache = new FileRelatedCache($this->cachePath, $cachedFile, 0);
+        $cache = new FileRelatedCache($this->fs, $this->cachePath, $cachedFile, 0);
         $cache->set($content);
         self::assertFalse($cache->exists());
     }
@@ -43,15 +46,15 @@ final class FileRelatedCacheTest extends TestCase
     public function testUpdateFile(): void
     {
         $content = microtime();
-        $cachedFile = $this->cachePath . 'example3.php';
+        $cachedFile = $this->fs->atCache($this->cachePath) . 'example3.php';
         file_put_contents($cachedFile, $content);
-        $cache = new FileRelatedCache($this->cachePath, $cachedFile, 100);
+        $cache = new FileRelatedCache($this->fs, $this->cachePath, $cachedFile, 100);
         $cache->set($content);
         $cacheKey1 = $cache->path;
         self::assertSame($content, file_get_contents($cache->path));
         touch($cachedFile, time() + 1);
 
-        $cache2 = new FileRelatedCache($this->cachePath, $cachedFile, 200);
+        $cache2 = new FileRelatedCache($this->fs, $this->cachePath, $cachedFile, 200);
         self::assertSame($cacheKey1, $cache2->path);
         self::assertFalse($cache2->exists());
         $cache2->set($content);
@@ -61,9 +64,9 @@ final class FileRelatedCacheTest extends TestCase
     public function testClean(): void
     {
         $content = microtime();
-        $cachedFile = $this->cachePath . 'example4.php';
+        $cachedFile = $this->fs->atCache($this->cachePath) . 'example4.php';
         file_put_contents($cachedFile, $content);
-        $cache = new FileRelatedCache($this->cachePath, $cachedFile, 100);
+        $cache = new FileRelatedCache($this->fs, $this->cachePath, $cachedFile, 100);
         $cache->set($content);
         self::assertFileExists($cache->path);
         $cache->clear();
@@ -82,18 +85,21 @@ final class FileRelatedCacheTest extends TestCase
 
     private function ensureDir(): void
     {
-        $this->cachePath = sys_get_temp_dir() . '/joke-test-cache-' . uniqid() . '/';
-        mkdir($this->cachePath, 0o755, true);
+        $this->basePath = sys_get_temp_dir() . '/joke-test-cache-' . uniqid() . '/';
+        $this->cachePath = '/test-cache/';
+        mkdir($this->basePath, 0o755, true);
+        $this->fs = new FileSystem($this->basePath);
+        $this->fs->ensureDirectory($this->fs->atCache($this->cachePath));
     }
 
     private function clean(): void
     {
-        if (!file_exists($this->cachePath)) {
+        if (!file_exists($this->basePath)) {
             return;
         }
 
         $iterator = new \RecursiveIteratorIterator(
-            new \RecursiveDirectoryIterator($this->cachePath, \RecursiveDirectoryIterator::SKIP_DOTS),
+            new \RecursiveDirectoryIterator($this->basePath, \RecursiveDirectoryIterator::SKIP_DOTS),
             \RecursiveIteratorIterator::CHILD_FIRST,
         );
 
@@ -104,6 +110,6 @@ final class FileRelatedCacheTest extends TestCase
                 unlink($file->getPathname());
             }
         }
-        rmdir($this->cachePath);
+        rmdir($this->basePath);
     }
 }

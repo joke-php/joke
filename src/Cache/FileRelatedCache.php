@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Cache;
 
 use Vasoft\Joke\Contract\FileRelatedCacheInterface;
+use Vasoft\Joke\Exceptions\FileSystemException;
+use Vasoft\Joke\Support\FileSystem;
 
 /**
  * Файловый кэш, привязанный к исходному файлу.
@@ -44,19 +46,26 @@ class FileRelatedCache implements FileRelatedCacheInterface
     public private(set) string $path;
 
     /**
-     * @param string $cacheDir    Базовая директория для хранения кэш-файлов
-     * @param string $srcFilePath Путь к исходному файлу (используется как ключ и для проверки актуальности)
-     * @param int    $ttl         Время жизни кэша в секундах
-     * @param string $extension   Расширение кэш-файла (по умолчанию 'php')
+     * @param FileSystem $fs          Сервис файловой системы
+     * @param string     $cacheDir    Базовая директория для хранения кэш-файлов относительно каталога кеша проекта
+     * @param string     $srcFilePath Путь к исходному файлу (используется как ключ и для проверки актуальности)
+     * @param int        $ttl         Время жизни кэша в секундах
+     * @param string     $extension   Расширение кэш-файла (по умолчанию 'php')
+     *
+     * @throws FileSystemException При ошибках файловой системы
      */
     public function __construct(
+        private readonly FileSystem $fs,
         string $cacheDir,
         public readonly string $srcFilePath,
         private readonly int $ttl,
         string $extension = 'php',
     ) {
+        $cacheDir = trim($cacheDir, '\/');
         $hash = md5($srcFilePath);
-        $this->path = sprintf('%s/%s/%s.%s', $cacheDir, mb_substr($hash, 0, 2), $hash, $extension);
+        $path = $fs->atCache(sprintf('%s/%s', $cacheDir, mb_substr($hash, 0, 2)));
+        $fs->ensureDirectory($path);
+        $this->path = $path . $hash . '.' . $extension;
     }
 
     /**
@@ -91,17 +100,12 @@ class FileRelatedCache implements FileRelatedCacheInterface
      * {@inheritDoc}
      *
      * Реализует атомарную запись: данные сначала пишутся во временный файл, затем переименовываются в целевой путь.
+     *
+     * @throws FileSystemException При ошибках файловой системы
      */
     public function set(string $value): void
     {
-        $dir = dirname($this->path);
-        if (!is_dir($dir)) {
-            mkdir($dir, 0o755, true);
-        }
-
-        $tmp = tempnam($dir, '.tmp.');
-        file_put_contents($tmp, $value);
-        rename($tmp, $this->path);
+        $this->fs->writeFileSafe($this->path, $value);
     }
 
     public function clear(): void

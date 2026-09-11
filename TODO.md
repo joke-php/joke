@@ -28,6 +28,6 @@
 - [ ] Параметр Secure для кук изменять если запрос по http (для локальной разработки). Изучить необходимость.
 - [ ] ReadonlyPropsCollection добавить варианты *OrFail для геттеров, а для обычных реализовать стратегию возвращения значения по умолчанию
 - [ ] HtmlPageResponse в качестве основного вместо HtmlResponse
-- [ ] FileRelatedCache переделать на использование сервиса FileSystem 
+- [x] FileRelatedCache переделать на использование сервиса FileSystem 
 - [ ] BinaryResponse использование сервиса FileSystem
 - [ ] EnvironmentLoader - проверить нет ли необходимости использовать FileSystem
