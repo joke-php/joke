@@ -182,6 +182,11 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 | CsrfMiddleware::CSRF_TOKEN_HEADER | CsrfTokenManager::CSRF_TOKEN_HEADER |
 | CsrfMiddleware::CSRF_TOKEN_COOKIE | CsrfTokenManager::CSRF_TOKEN_COOKIE |
 
-## 8 `DiContainerInterface` объявлен устаревшим 
+## 8 `DiContainerInterface` объявлен устаревшим
 
-Метод `has` перенесен из `Vasoft\Joke\Contract\Container\ContainerInspectionInterface` в `Vasoft\Joke\Contract\Container\DiContainerInterface`. При этом `ContainerInspectionInterface` объявлен `deprecated`.
+Метод `has` перенесен из `Vasoft\Joke\Contract\Container\ContainerInspectionInterface` в
+`Vasoft\Joke\Contract\Container\DiContainerInterface`. При этом `ContainerInspectionInterface` объявлен `deprecated`.
+
+## 9 Добавлен абстрактный метод 'getContentType' в `Vasoft\Joke\Http\Response\Response`
+
+В классах унаследованных от `Vasoft\Joke\Http\Response\Response`необходимо добавить реализацию этого метода 
