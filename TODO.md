@@ -31,3 +31,4 @@
 - [x] FileRelatedCache переделать на использование сервиса FileSystem 
 - [ ] BinaryResponse использование сервиса FileSystem
 - [ ] EnvironmentLoader - проверить нет ли необходимости использовать FileSystem
+- [ ] BinaryResponse - переделать на использование файловой системы?

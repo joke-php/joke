@@ -6,25 +6,39 @@ namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
 
+/**
+ * Базовый класс для бинарных HTTP-ответов.
+ *
+ * Предназначен для отправки файлов и бинарных данных (изображения, PDF, архивы и т.д.).
+ * Автоматически устанавливает заголовки Content-Length и Content-Disposition.
+ *
+ * @see Response
+ */
 abstract class BinaryResponse extends Response
 {
     /**
-     * Тело файла.
+     * Тело ответа (бинарные данные).
      */
     protected string $body = '';
+    /**
+     * Имя файла для загрузки клиентом.
+     *
+     * При установке автоматически извлекается базовое имя файла через basename().
+     */
     public string $filename = '' {
         set(string $value) => $this->filename = basename($value);
         get => $this->filename;
     }
 
     /**
-     * Загрузка тела из файла.
+     * Загружает содержимое файла в тело ответа.
      *
-     * @param string $filename Полное имя файла
+     * Если свойство {@see $filename} ещё не установлено, оно будет автоматически
+     * заполнено переданным путём к файлу.
      *
-     * @return $this
+     * @param string $filename Полный путь к файлу на сервере
      *
-     * @throws NotFoundException Если не удалось считать файл
+     * @throws NotFoundException Если файл не существует или не удалось прочитать его содержимое
      */
     public function load(string $filename): static
     {
@@ -42,9 +56,9 @@ abstract class BinaryResponse extends Response
     }
 
     /**
-     * @param string $body
+     * Устанавливает тело ответа.
      *
-     * @return $this
+     * @param string $body Бинарные данные или строка
      */
     public function setBody($body): static
     {
@@ -53,16 +67,36 @@ abstract class BinaryResponse extends Response
         return $this;
     }
 
+    /**
+     * Возвращает тело ответа.
+     *
+     * @return string Содержимое ответа
+     */
     public function getBody(): string
     {
         return $this->body;
     }
 
+    /**
+     * Возвращает тело ответа в виде строки.
+     *
+     * Метод идентичен {@see getBody()}, добавлен для совместимости с интерфейсами,
+     * требующими явного метода получения строкового представления.
+     *
+     * @return string Содержимое ответа
+     */
     public function getBodyAsString(): string
     {
         return $this->body;
     }
 
+    /**
+     * Отправляет HTTP-ответ клиенту.
+     *
+     * Автоматически устанавливает заголовки:
+     * - Content-Length: размер тела ответа
+     * - Content-Disposition: attachment с именем файла
+     */
     public function send(): static
     {
         $this->headers->set('Content-Length', strlen($this->body));
