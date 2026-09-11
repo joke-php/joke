@@ -29,22 +29,6 @@ use Vasoft\Joke\Middleware\Exceptions\MiddlewareException;
 class CsrfMiddleware implements MiddlewareInterface
 {
     /**
-     * @deprecated
-     * @see CsrfTokenManager::CSRF_TOKEN_NAME
-     */
-    public const string CSRF_TOKEN_NAME = 'csrf_token';
-    /**
-     * @deprecated
-     * @see CsrfTokenManager::CSRF_TOKEN_HEADER
-     */
-    public const string CSRF_TOKEN_HEADER = 'X-Csrf-Token';
-    /**
-     * @deprecated
-     * @see CsrfTokenManager::CSRF_TOKEN_COOKIE
-     */
-    public const string CSRF_TOKEN_COOKIE = 'XSRF-TOKEN';
-
-    /**
      * @param ResponseBuilder   $responseBuilder Билдер ответа
      * @param CsrfConfig        $config          Конфигурация CSRF. Не используется. В версии 2.* будет удален
      * @param ?CsrfTokenManager $manager         Менеджер токенов CSRF. null - только для совместимости.

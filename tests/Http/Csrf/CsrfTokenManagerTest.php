@@ -78,7 +78,7 @@ final class CsrfTokenManagerTest extends TestCase
     {
         $expectToken = $this->tokenManager->validate($this->getRequest);
         $request = new HttpRequest(
-            post: [CsrfMiddleware::CSRF_TOKEN_NAME => $expectToken],
+            post: [CsrfTokenManager::CSRF_TOKEN_NAME => $expectToken],
             cookies: [CsrfTokenManager::CSRF_TOKEN_COOKIE => 'wrongCookie'],
             server: [
                 'REQUEST_METHOD' => 'POST',
@@ -105,7 +105,7 @@ final class CsrfTokenManagerTest extends TestCase
     {
         $expectToken = $this->tokenManager->validate($this->getRequest);
         $request = new HttpRequest(
-            get: [CsrfMiddleware::CSRF_TOKEN_NAME => 'wrongToken'],
+            get: [CsrfTokenManager::CSRF_TOKEN_NAME => 'wrongToken'],
             server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/csrf'],
         );
         $request->session->set(CsrfTokenManager::CSRF_TOKEN_NAME, $expectToken);
@@ -119,7 +119,7 @@ final class CsrfTokenManagerTest extends TestCase
     {
         $expectToken = $this->tokenManager->validate($this->getRequest);
         $request = new HttpRequest(
-            get: [CsrfMiddleware::CSRF_TOKEN_NAME => 'wrongToken'],
+            get: [CsrfTokenManager::CSRF_TOKEN_NAME => 'wrongToken'],
             server: ['REQUEST_METHOD' => $method, 'REQUEST_URI' => '/csrf'],
         );
         $request->session->set(CsrfTokenManager::CSRF_TOKEN_NAME, $expectToken);
