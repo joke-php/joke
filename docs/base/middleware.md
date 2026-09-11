@@ -62,7 +62,7 @@ use Vasoft\Joke\Application\Application;
 use Vasoft\Joke\Routing\Router;
 use Vasoft\Joke\Container\ServiceContainer;
 
-return new Application(dirname(__DIR__), '', new ServiceContainer())
+return new Application(dirname(__DIR__), new ServiceContainer())
     ->addMiddleware(SomeMiddleware1::class,'myNamedMiddleware')
     ->addMiddleware(SomeMiddleware2::class);
 ```
@@ -82,7 +82,7 @@ use Vasoft\Joke\Application\Application;
 use Vasoft\Joke\Routing\Router;
 use Vasoft\Joke\Container\ServiceContainer;
 
-return new Application(dirname(__DIR__), '', new ServiceContainer())
+return new Application(dirname(__DIR__), new ServiceContainer())
     ->addRouteMiddleware(SomeMiddleware1::class,'myNamedMiddleware1')
     ->addRouteMiddleware(SomeMiddleware2::class)
     ->addRouteMiddleware(SomeMiddleware3::class,'myNamedMiddleware2',['example','internal']);

@@ -25,9 +25,6 @@ use Vasoft\Joke\Routing\StdGroup;
 
 class KernelServiceProvider extends AbstractProvider implements ConfigurableServiceProviderInterface
 {
-    /** @deprecated Только для обратной совместимости - будет удален в версии 2.0 */
-    public static string $legacyPathRouteFile = 'routes/web.php';
-
     public function __construct(
         private readonly ServiceContainer $serviceContainer,
     ) {}
@@ -77,7 +74,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
     public static function buildConfig(string $configClass, ServiceContainer $container): AbstractConfig
     {
         return match ($configClass) {
-            ApplicationConfig::class => new ApplicationConfig()->setFileRoues(self::$legacyPathRouteFile),
+            ApplicationConfig::class => new ApplicationConfig(),
             CookieConfig::class => new CookieConfig(),
             CsrfConfig::class => new CsrfConfig(),
             CorsConfig::class => new CorsConfig(),

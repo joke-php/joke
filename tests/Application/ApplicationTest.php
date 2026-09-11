@@ -83,11 +83,7 @@ final class ApplicationTest extends TestCase
     public function testLoadingEnvironment(): void
     {
         $di = new ServiceContainer();
-        new Application(
-            dirname(__DIR__, 2),
-            'routes/web.php',
-            $di,
-        );
+        new Application(dirname(__DIR__, 2), $di);
         $byAlias = $di->get('env');
         $byClass = $di->get(Environment::class);
         self::assertInstanceOf(Environment::class, $byAlias);
@@ -99,7 +95,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
 
-        $app = new Application(dirname(__DIR__, 2), '', $container);
+        $app = new Application(dirname(__DIR__, 2), $container);
         $routeMiddlewares = $container->get('middleware.route');
         $routeMiddlewares
             ->addMiddleware(new NopMiddleware(), StdMiddleware::SESSION->value);
@@ -117,7 +113,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
         $container->registerSingleton(LoggerInterface::class, Logger::class);
-        $app = new Application(dirname(__DIR__, 2), 'routes/web.php', $container);
+        $app = new Application(dirname(__DIR__, 2), $container);
         $routeMiddlewares = $container->get('middleware.route');
         $routeMiddlewares
             ->addMiddleware(new NopMiddleware(), StdMiddleware::SESSION->value);
@@ -132,7 +128,6 @@ final class ApplicationTest extends TestCase
     {
         $app = new Application(
             dirname(__DIR__) . \DIRECTORY_SEPARATOR . '/Fixtures/no-wildcard',
-            'tests/Fixtures/no-wildcard/routes/web.php',
             new ServiceContainer(),
         );
         ob_start();
@@ -146,7 +141,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
         $container->registerSingleton(LoggerInterface::class, new FakeLogger());
-        $app = new Application(dirname(__DIR__, 2), 'routes/web.php', $container);
+        $app = new Application(dirname(__DIR__, 2), $container);
         $routeMiddlewares = $container->get('middleware.route');
         $routeMiddlewares
             ->addMiddleware(new NopMiddleware(), StdMiddleware::SESSION->value);
@@ -162,11 +157,7 @@ final class ApplicationTest extends TestCase
     {
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
-        $app = new Application(
-            dirname(__DIR__, 2),
-            'routes/web.php',
-            $container,
-        );
+        $app = new Application(dirname(__DIR__, 2), $container);
         self::assertSame(PHP_SESSION_NONE, session_status());
         ob_start();
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/Alex']));
@@ -183,7 +174,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
         $container->registerSingleton(LoggerInterface::class, new FakeLogger());
-        $app = new Application(dirname(__DIR__, 2), 'routes/web.php', $container)
+        $app = new Application(dirname(__DIR__, 2), $container)
             ->addMiddleware(SingleMiddleware::class)
             ->addMiddleware($middleware);
         $routeMiddlewares = $container->get('middleware.route');
@@ -209,11 +200,7 @@ final class ApplicationTest extends TestCase
 
 
         $diContainer->registerSingleton(CsrfConfig::class, CsrfConfig::class);
-        $app = new Application(
-            dirname(__DIR__, 2),
-            'routes/web.php',
-            $diContainer,
-        )
+        $app = new Application(dirname(__DIR__, 2), $diContainer)
             ->addMiddleware(SingleMiddleware::class)
             ->addMiddleware($middleware)
             ->addRouteMiddleware($routeMiddleware);
@@ -247,7 +234,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
         $container->registerSingleton(LoggerInterface::class, new FakeLogger());
-        $app = new Application(dirname(__DIR__, 2), 'routes/web.php', $container)
+        $app = new Application(dirname(__DIR__, 2), $container)
             ->addMiddleware(SingleMiddleware::class)
             ->addMiddleware($middleware)
             ->addRouteMiddleware($routeMiddleware1)
@@ -275,11 +262,8 @@ final class ApplicationTest extends TestCase
 
     public function testWrongMiddleware(): void
     {
-        $app = new Application(
-            dirname(__DIR__, 2),
-            'routes/web.php',
-            new ServiceContainer(),
-        )->addMiddleware(Router::class);
+        $app = new Application(dirname(__DIR__, 2), new ServiceContainer())
+            ->addMiddleware(Router::class);
         ob_start();
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/jons']));
         $output = ob_get_clean();
@@ -294,14 +278,14 @@ final class ApplicationTest extends TestCase
         self::writeKernelBootstrap('new \Vasoft\Joke\Tests\Fixtures\Config\SingleConfig();');
         self::expectException(ConfigException::class);
         self::expectExceptionMessageIs('kernel.php must return a KernelConfig instance.');
-        new Application(self::$basePath, '', new ServiceContainer());
+        new Application(self::$basePath, new ServiceContainer());
     }
 
     public function testKernelBootstrapSuccess(): void
     {
         self::writeKernelBootstrap('new \Vasoft\Joke\Application\KernelConfig()->setLazyConfigPath("custom_lazy");');
         $container = new ServiceContainer();
-        new Application(self::$basePath, '', $container);
+        new Application(self::$basePath, $container);
         self::assertSame('custom_lazy', $container->get(KernelConfig::class)->getLazyConfigPath());
     }
 
@@ -332,7 +316,7 @@ final class ApplicationTest extends TestCase
                 return $container;
             });
 
-        new Application(self::$basePath, '', $container);
+        new Application(self::$basePath, $container);
         $log = $logger->getRecords();
 
         self::assertCount(1, $log);
@@ -369,7 +353,7 @@ final class ApplicationTest extends TestCase
                 },
             );
 
-        new Application(self::$basePath, '', $container);
+        new Application(self::$basePath, $container);
         $log = $logger->getRecords();
         self::assertSame(
             'middleware.global is not instance of MiddlewareCollection.',
@@ -409,7 +393,7 @@ final class ApplicationTest extends TestCase
 
         self::expectException(MiddlewareException::class);
         self::expectExceptionMessageIs($expectMessage);
-        new Application(self::$basePath, '', $container);
+        new Application(self::$basePath, $container);
     }
 
     #[RunInSeparateProcess]
@@ -429,7 +413,7 @@ final class ApplicationTest extends TestCase
         $container = new ServiceContainer();
         $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
 
-        $app = new Application(dirname(__DIR__, 2), '', $container);
+        $app = new Application(dirname(__DIR__, 2), $container);
         ob_start();
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/queries']);
         $app->handle($request);

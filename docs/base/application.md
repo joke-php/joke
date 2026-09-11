@@ -11,7 +11,6 @@
    ```php
    return new Application(
        dirname(__DIR__),    // базовый путь проекта
-       '',                  // Устаревший параметр будет удален в версии 2.0
        new ServiceContainer()
    );
    ```
@@ -161,7 +160,7 @@ session_set_cookie_params([
 $container = new ServiceContainer();
 $container->registerSingleton(Logger::class, FileLogger::class);
 
-return new Application(dirname(__DIR__), '', $container)
+return new Application(dirname(__DIR__), $container)
  ->addMiddleware(CorsMiddleware::class)
  ->addRouteMiddleware(AuthMiddleware::class, 'auth', ['admin']);
 ```

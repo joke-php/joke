@@ -242,7 +242,7 @@ $container = new ServiceContainer();
 // Регистрируем свою реализацию вместо стандартной
 $container->registerSingleton(RouterInterface::class, MyCustomRouter::class);
 
-return new Application(dirname(__DIR__), '', $container);
+return new Application(dirname(__DIR__), $container);
 ```
 
 Это позволяет кастомизировать поведение маршрутизатора (например, изменить алгоритм поиска или формат паттернов) без
