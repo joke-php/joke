@@ -26,11 +26,7 @@ final class HtmlPageResponseTest extends TestCase
         $builderConfig = new PageBuilderConfig()->setTagSeparator('');
         self::$container->registerSingleton(PageBuilderConfig::class, $builderConfig);
         self::$container->registerSingleton(CookieConfig::class, CookieConfig::class);
-        new Application(
-            dirname(__DIR__, 2),
-            'routes/web.php',
-            self::$container,
-        );
+        new Application(dirname(__DIR__, 2), self::$container);
     }
 
     public function testOnlyBody(): void

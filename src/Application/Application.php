@@ -69,7 +69,6 @@ class Application
      * - SessionMiddleware и CsrfMiddleware (уровень маршрутизатора, группа 'web')
      *
      * @param string           $basePath         Базовый путь приложения (обычно корень проекта)
-     * @param string           $routeConfigWeb   Параметр будет удален в версии 2.0
      * @param ServiceContainer $serviceContainer DI-контейнер
      *
      * @throws ConfigException
@@ -80,23 +79,11 @@ class Application
      * @throws ProviderException
      * @throws ServiceNotFoundException
      * @throws \Throwable
-     *
-     * @todo Нормализовать пути
      */
     public function __construct(
         string $basePath,
-        string $routeConfigWeb,
         public readonly ServiceContainer $serviceContainer,
     ) {
-        if ('' !== $routeConfigWeb) { // Проверяем, передано ли значение отличное от пустой строки (или дефолта)
-            KernelServiceProvider::$legacyPathRouteFile = $routeConfigWeb;
-            @trigger_error(
-                'The argument $routeConfigWeb in ' . self::class . '::__construct() is deprecated '
-                . 'and will be removed in version 2.0. '
-                . 'Please configure the routes file path in ApplicationConfig instead.',
-                E_USER_DEPRECATED,
-            );
-        }
         $this->paths = new FileSystem($basePath);
         $this->basePath = $this->paths->basePath;
         $serviceContainer->registerSingleton(FileSystem::class, $this->paths);

@@ -31,7 +31,7 @@ final class ExceptionMiddlewareTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         self::$container = new ServiceContainer();
-        new Application(dirname(__DIR__, 2), '', self::$container);
+        new Application(dirname(__DIR__, 2), self::$container);
         self::$container->registerSingleton(LoggerInterface::class, NullLogger::class);
         self::$container->registerAlias('logger', LoggerInterface::class);
         self::$container->registerSingleton(
@@ -65,7 +65,7 @@ final class ExceptionMiddlewareTest extends TestCase
     {
         $appConfig = new ApplicationConfig()->setResponseClass(JsonResponse::class);
         $container = new ServiceContainer();
-        new Application(dirname(__DIR__, 2), '', $container);
+        new Application(dirname(__DIR__, 2), $container);
         $container->registerSingleton(LoggerInterface::class, NullLogger::class);
         $container->registerAlias('logger', LoggerInterface::class);
         $container->registerSingleton(ResponseBuilder::class, new ResponseBuilder($appConfig, $container));
@@ -86,7 +86,7 @@ final class ExceptionMiddlewareTest extends TestCase
         $envMock->expects(self::once())->method('isProduction')->willReturn(true);
         $appConfig = new ApplicationConfig()->setResponseClass(JsonResponse::class);
         $container = new ServiceContainer();
-        new Application(dirname(__DIR__, 2), '', $container);
+        new Application(dirname(__DIR__, 2), $container);
         $container->registerSingleton(LoggerInterface::class, NullLogger::class);
         $container->registerAlias('logger', LoggerInterface::class);
         $container->registerSingleton(ResponseBuilder::class, new ResponseBuilder($appConfig, $container));

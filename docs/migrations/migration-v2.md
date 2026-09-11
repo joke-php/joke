@@ -50,35 +50,54 @@
 
 ### 2. Изменение сигнатуры конструктора приложения
 
-Я планирую очистить конструктор ядра от лишних зависимостей. В текущей версии параметр `$routeConfigWeb` вынуждает
-передавать путь к файлу маршрутов вручную при создании экземпляра `Application`. В версии 2.0 эта ответственность
-полностью переходит к системе конфигурации.
-
-**Что изменится:**
-Параметр `$routeConfigWeb` будет удален из конструктора `Vasoft\Joke\Application\Application`.
-
-**Планируемая сигнатура:**
+В конструкторе `Vasoft\Joke\Application` убран параметр `$routeConfigWeb` теперь его необходимо передавать через
+конфигурацию.
+Было:
 
 ```php
-public function __construct(
-    string $basePath, 
-    public readonly ServiceContainer $serviceContainer
-);
+// bootstrap/app.php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Vasoft\Joke\Application\Application;
+use Vasoft\Joke\Container\ServiceContainer;
+
+return new Application(dirname(__DIR__), 'routes/custom-web.php', new ServiceContainer());
 ```
 
-**Как это будет работать:**
-Вам больше не нужно передавать пути к конфигурационным файлам в код инициализации (`public/index.php`).
-Объект `Vasoft\Joke\Application\ApplicationConfig` будет создаваться и заполняться **автоматически**:
+Стало:
 
-* Либо через встроенный `KernelServiceProvider`.
-* Либо путем загрузки одного из конфигурационных файлов фреймворка.
+```php
+// bootstrap/app.php
+<?php
 
-Если вам потребуется изменить стандартный путь к файлу маршрутов, вы сделаете это в соответствующем конфиг-файле, а не
-в конструкторе приложения.
+declare(strict_types=1);
 
-**Итог для миграции:**
-В точке входа (`index.php`) код создания приложения станет чище: исчезнет аргумент с путем к роутам. Все настройки будут
-управляться централизованно через систему конфигурации, как это уже реализовано для других параметров в версии 1.2+.
+require __DIR__ . '/../vendor/autoload.php';
+
+use Vasoft\Joke\Application\Application;
+use Vasoft\Joke\Container\ServiceContainer;
+
+return new Application(dirname(__DIR__), new ServiceContainer());
+```
+
+```php
+<?php
+
+/** @var Environment $env */
+declare(strict_types=1);
+
+use Vasoft\Joke\Application\ApplicationConfig;
+use Vasoft\Joke\Config\Environment;
+
+return new ApplicationConfig()
+    ->setFileRoues('routes/custom-web.php');
+```
+
+По умолчанию путь `routes/web.php`.
 
 ### 3. Изменение поведения контейнера зависимостей
 
