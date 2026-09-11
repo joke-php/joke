@@ -33,7 +33,7 @@ final class AssetCollectionTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         $name = 'AssetCollection' . random_int(1, 100);
-        $base = dirname(__DIR__, 4) . \DIRECTORY_SEPARATOR . 'Fixtures/cache' . \DIRECTORY_SEPARATOR;
+        $base = sys_get_temp_dir() . '/joke_asset_collection_test_' . uniqid();
         self::$projectPath = $base . $name . \DIRECTORY_SEPARATOR;
         self::$documentRoot = self::$projectPath . 'www' . \DIRECTORY_SEPARATOR;
         mkdir(self::$documentRoot . self::$assetUri . \DIRECTORY_SEPARATOR, recursive: true);
