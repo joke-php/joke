@@ -16,12 +16,12 @@
 
 ## Изменения планируемы в версии 2
 
-- [ ] Добавление метода abstract public function getContentType(): string; в абстрактный класс Response. ContentType в
+- [x] Добавление метода abstract public function getContentType(): string; в абстрактный класс Response. ContentType в
   заголовки будет добавляться в методе Response::send()
 - [x] Убрать пространство Core
 - [x] Минимальная версия PHP 8.5
-- [ ] В DiContainer изменить поведение. Если сервис не найден бросать исключение (совместимость с PSR11)
-- [ ] DiContainer изменить поведение register с учетом __invoke()
+- [x] В DiContainer изменить поведение. Если сервис не найден бросать исключение (совместимость с PSR11)
+- [x] DiContainer изменить поведение register с учетом __invoke()
 - [ ] DiContainer методы register* сбудут возвращать контейнер
 - [ ] Повысить уровень проверки стана
 - [ ] Для роута и групп роутов тип ответа по умолчанию и возможность его задать

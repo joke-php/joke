@@ -40,6 +40,7 @@ abstract class Response
 
     public function __construct(CookieConfig $cookieConfig = new CookieConfig())
     {
+        $this->headers->setContentType($this->getContentType());
         $cookieConfig->freeze();
         $this->cookies = new CookieCollection($cookieConfig);
     }
@@ -113,4 +114,11 @@ abstract class Response
 
         return $this;
     }
+
+    /**
+     * Возвращает MIME-тип содержимого ответа.
+     *
+     * @return string MIME-тип (например, 'text/html', 'application/json', 'image/png')
+     */
+    abstract public function getContentType(): string;
 }

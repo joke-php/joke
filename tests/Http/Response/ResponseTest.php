@@ -7,6 +7,7 @@ namespace Vasoft\Joke\Tests\Http\Response;
 use phpmock\phpunit\MockObjectProxy;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Collections\HeadersCollection;
@@ -42,6 +43,7 @@ final class ResponseTest extends TestCase
         self::assertSame(ResponseStatus::NOT_FOUND, $response->status);
     }
 
+    #[TestDox('При создании объекта ответа инициализируются заголовки типом контента')]
     public function testHeadersCollectionIsInitialized(): void
     {
         $response = new HtmlResponse();

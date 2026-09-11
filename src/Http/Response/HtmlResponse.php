@@ -4,32 +4,22 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Http\Response;
 
-use Vasoft\Joke\Http\Cookies\CookieConfig;
-use Vasoft\Joke\Http\Response\Response as NewResponse;
-
 /**
  * HTTP-ответ в формате HTML.
  *
  * Автоматически устанавливает заголовок Content-Type: text/html.
  * Принимает любые данные и преобразует их в строку при установке тела ответа.
  */
-class HtmlResponse extends NewResponse
+class HtmlResponse extends Response
 {
     /**
      * Тело HTML-ответа.
      */
     protected string $body = '';
 
-    /**
-     * Конструктор HTML-ответа.
-     *
-     * Устанавливает Content-Type в 'text/html'.
-     */
-    public function __construct(
-        CookieConfig $cookieConfig = new CookieConfig(),
-    ) {
-        parent::__construct($cookieConfig);
-        $this->headers->setContentType('text/html');
+    public function getContentType(): string
+    {
+        return 'text/html';
     }
 
     /**

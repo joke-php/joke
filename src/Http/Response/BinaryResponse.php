@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
-use Vasoft\Joke\Http\Response\Response as NewResponse;
 
-abstract class BinaryResponse extends NewResponse
+abstract class BinaryResponse extends Response
 {
     /**
      * Тело файла.
@@ -66,12 +65,9 @@ abstract class BinaryResponse extends NewResponse
 
     public function send(): static
     {
-        $this->headers->setContentType($this->getContentType());
         $this->headers->set('Content-Length', strlen($this->body));
         $this->headers->set('Content-Disposition', sprintf('attachment; filename="%s"', $this->filename));
 
         return parent::send();
     }
-
-    abstract public function getContentType(): string;
 }
