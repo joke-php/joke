@@ -90,7 +90,9 @@ return new ApplicationConfig()
 
 ### 3. Изменение поведения контейнера зависимостей
 
-Изменился `Vasoft\Joke\Contract\Container::get(string $name): object;` теперь не может возвращать null. Если сервис не найден - выбрасывается исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`. В соответствии с этим изменен `Vasoft\Joke\Container\BaseContainer`.
+Изменился `Vasoft\Joke\Contract\Container::get(string $name): object;` теперь не может возвращать null. Если сервис не
+найден - выбрасывается исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`. В соответствии с этим
+изменен `Vasoft\Joke\Container\BaseContainer`.
 
 ### 4. Единая точка информации о путях проекта
 
@@ -101,5 +103,69 @@ return new ApplicationConfig()
 - Vasoft\Joke\Config\Environment::getBasePath()
 - Vasoft\Joke\Config\EnvironmentLoader::getBasePath()
 
-### 5 FileRelatedCache изменен конструктор 
+### 5 FileRelatedCache изменен конструктор
+
 - FileRelatedCache в параметры конструктора добавлен сервис FileSystem
+
+### 6 Из контейнера зависимостей удален метод register
+
+Из интерфейса `Vasoft\Joke\Contract\Container\DiContainerInterface` и базовой реализации
+`Vasoft\Joke\Container\BaseContainer` удален метод register.
+
+Замените вызовы `register()` на явные методы в зависимости от требуемого поведения. Все найденные вызовы должны быть
+заменены на `registerSingleton()` или прямое использование `make()`.:
+
+**Было:**
+
+```php
+// Неоднозначно: что это — фабрика или синглтон?
+$container->register(ServiceInterface::class, new ServiceFactory());
+
+// Неоднозначно: новый экземпляр или переиспользование?
+$container->register('logger', Logger::class);
+```
+
+**Стало:**
+
+Для **синглтонов** (один экземпляр на всё время жизни приложения):
+
+```php
+// Готовый объект
+$container->registerSingleton(ServiceInterface::class, new Service());
+
+// Фабрика, результат которой кэшируется
+$container->registerSingleton(
+    ServiceInterface::class,
+    fn() => new Service($dependency)
+);
+
+// Класс (будет создан один раз через рефлексию)
+$container->registerSingleton(Logger::class, Logger::class);
+```
+
+Для **прототипов** (новый экземпляр при каждом запросе):
+
+```php
+// Используйте make() напрямую для получения новых экземпляров
+$service = $container->make(Service::class);
+
+// Или зарегистрируйте фабрику и вызывайте её явно
+$factory = fn() => new Service($dependency);
+$service = $factory(); // каждый раз новый объект
+```
+
+#### Особые случаи
+
+**Callable-объекты с `__invoke`:**
+
+Если вы использовали объекты-фабрики:
+
+```php
+// Было
+$container->register('service', new ServiceFactory());
+
+// Стало — явно укажите поведение
+$container->registerSingleton('service', new ServiceFactory()); // как синглтон
+// или
+$service = $container->make(fn() => (new ServiceFactory())()); // как прототип
+```

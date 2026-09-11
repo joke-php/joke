@@ -33,20 +33,6 @@ interface DiContainerInterface
     public function registerSingleton(string $name, callable|object|string $service): void;
 
     /**
-     * Регистрирует сервис как прототип.
-     *
-     * При каждом вызове get() будет создаваться новый экземпляр.
-     * Если передан готовый объект (не callable), он автоматически регистрируется как синглтон.
-     *
-     * @param string                 $name    Имя сервиса
-     * @param callable|object|string $service Определение сервиса
-     *
-     * @deprecated Передача вызываемых объектов (с помощью __invoke) будет рассматриваться как синглтоны в версии 2.0.
-     * Используйте \Closure для фабрик.
-     */
-    public function register(string $name, callable|object|string $service): void;
-
-    /**
      * Регистрирует псевдоним (алиас) для имени сервиса.
      *
      * После регистрации запрос сервиса по имени `$alias` будет эквивалентен
