@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Contract\Container;
 
 use Vasoft\Joke\Container\Exceptions\ContainerException;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
+use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
 
 interface DiContainerInterface
 {
@@ -70,10 +71,11 @@ interface DiContainerInterface
      *
      * @param class-string<T>|string $name Имя сервиса
      *
-     * @return ($name is class-string ? null|T : null|object) Экземпляр сервиса или null, если не найден
+     * @return ($name is class-string ? T : object) Экземпляр сервиса или null, если не найден
      *
      * @throws ParameterResolveException Если не удаётся разрешить зависимости
      * @throws ContainerException        В случае ошибок уровня контейнера
+     * @throws ServiceNotFoundException  Если сервис не найден
      */
-    public function get(string $name): ?object;
+    public function get(string $name): object;
 }

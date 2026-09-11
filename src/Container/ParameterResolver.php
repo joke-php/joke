@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Container;
 
 use Vasoft\Joke\Container\Exceptions\ContainerException;
+use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
 use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
@@ -118,10 +119,12 @@ class ParameterResolver implements ResolverInterface
                 continue;
             }
             if ($type && (class_exists($type) || interface_exists($type))) {
-                $service = $this->serviceContainer->get($type);
-                if (null === $service) {
-                    throw new AutowiredException($name, $type);
+                try {
+                    $service = $this->serviceContainer->get($type);
+                } catch (ServiceNotFoundException $exception) {
+                    throw new AutowiredException($name, $type, previous: $exception);
                 }
+
                 $args[] = $service;
             } else {
                 throw new AutowiredException($name, $type ?: 'scalar');

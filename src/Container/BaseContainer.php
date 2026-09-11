@@ -8,6 +8,7 @@ use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\ConfigManager;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
+use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
 use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
 use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
@@ -118,7 +119,7 @@ abstract class BaseContainer implements ContainerInspectionInterface
         return interface_exists($name) || class_exists($name);
     }
 
-    public function get(string $name): ?object
+    public function get(string $name): object
     {
         $result = $this->getSingleton($name);
         if (null !== $result) {
@@ -136,12 +137,8 @@ abstract class BaseContainer implements ContainerInspectionInterface
             } catch (ConfigException $e) {
             }
         }
-        @trigger_error(
-            "Service '{$name}' not found. In v2.0 this will throw an exception.",
-            E_USER_DEPRECATED,
-        );
 
-        return null;
+        throw new ServiceNotFoundException($name);
     }
 
     /**

@@ -7,6 +7,7 @@ namespace Vasoft\Joke\Tests\Container;
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Container\Exceptions\ContainerException;
+use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Container\ParameterResolver;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -67,11 +68,13 @@ final class BaseContainerTest extends TestCase
         self::assertNotSame($service1, $service2);
     }
 
+    #[TestDox('get незарегистрированного сервиса вызывает исключение')]
     public function testGetNotRegistered(): void
     {
         $container = new ServiceContainer();
-        $service1 = $container->get(SingleService::class);
-        self::assertNull($service1);
+        self::expectException(ServiceNotFoundException::class);
+        self::expectExceptionMessageIs("Service 'Vasoft\\Joke\\Tests\\Fixtures\\Service\\SingleService' not found.");
+        $container->get(SingleService::class);
     }
 
     public function testRegisteredCallback(): void

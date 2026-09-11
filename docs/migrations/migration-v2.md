@@ -101,8 +101,7 @@ return new ApplicationConfig()
 
 ### 3. Изменение поведения контейнера зависимостей
 
-Метод `BaseContainer::get` будет выбрасывать исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`,
-если сервис не найден.
+Изменился `Vasoft\Joke\Contract\Container::get(string $name): object;` теперь не может возвращать null. Если сервис не найден - выбрасывается исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`. В соответствии с этим изменен `Vasoft\Joke\Container\BaseContainer`.
 
 ### 4. Единая точка информации о путях проекта
 
