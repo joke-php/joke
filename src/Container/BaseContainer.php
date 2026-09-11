@@ -75,12 +75,14 @@ abstract class BaseContainer implements DiContainerInterface
         return $this->getSingleton(ResolverInterface::class);
     }
 
-    public function registerSingleton(string $name, callable|object|string $service): void
+    public function registerSingleton(string $name, callable|object|string $service): static
     {
         $this->singletonsRegistry[$name] = $service;
         if (is_object($service) && !($service instanceof \Closure)) {
             $this->singletons[$name] = $service;
         }
+
+        return $this;
     }
 
     private function isValidServiceName(string $name): bool

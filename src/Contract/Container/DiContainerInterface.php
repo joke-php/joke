@@ -30,7 +30,7 @@ interface DiContainerInterface
      *                                        - callable (фабрика)
      *                                        - готовый объект
      */
-    public function registerSingleton(string $name, callable|object|string $service): void;
+    public function registerSingleton(string $name, callable|object|string $service): static;
 
     /**
      * Регистрирует псевдоним (алиас) для имени сервиса.
