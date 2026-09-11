@@ -53,8 +53,6 @@ class Environment
         get => $this->name;
     }
 
-    private string $basePath = '';
-
     public function __construct(EnvironmentLoader $loader)
     {
         $environmentName = $_ENV[self::ENV_VAR_NAME]
@@ -63,7 +61,6 @@ class Environment
             ?: null;
         $this->name = is_string($environmentName) ? $environmentName : self::ENV_LOCAL;
         $this->vars = $loader->load($this->name, self::ENV_LOCAL, self::ENV_TESTING);
-        $this->basePath = $loader->getBasePath();
     }
 
     /**
@@ -144,15 +141,5 @@ class Environment
         }
 
         return $this->get($name);
-    }
-
-    /**
-     * Возвращает базовый путь к проекту.
-     *
-     * @deprecated В версии 2.0 будет удален
-     */
-    public function getBasePath(): string
-    {
-        return $this->basePath;
     }
 }

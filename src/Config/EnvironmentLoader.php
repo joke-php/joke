@@ -35,6 +35,8 @@ readonly class EnvironmentLoader
      * @param string $testName  тестовое окружение
      *
      * @return array<string, null|bool|float|int|string>
+     *
+     * @throws ConfigException При ошибках конфигурации
      */
     public function load(string $envName, string $localName, string $testName): array
     {
@@ -134,15 +136,5 @@ readonly class EnvironmentLoader
         }
 
         return $files;
-    }
-
-    /**
-     * Возвращает базовый путь к проекту.
-     *
-     * @deprecated Будет удален в версии 2.0
-     */
-    public function getBasePath(): string
-    {
-        return $this->basePath;
     }
 }

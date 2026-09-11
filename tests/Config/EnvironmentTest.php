@@ -204,13 +204,4 @@ final class EnvironmentTest extends TestCase
         self::expectExceptionMessageIs('Not exists');
         $env->getOrFail('props', 'Not exists');
     }
-
-    public function testBasePath(): void
-    {
-        $this->mockLoader->expects(self::once())->method('load')->willReturn([]);
-        $this->mockLoader->expects(self::once())->method('getBasePath')->willReturn('/var/www/');
-
-        $env = new Environment($this->mockLoader);
-        self::assertSame('/var/www/', $env->getBasePath());
-    }
 }

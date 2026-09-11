@@ -10,6 +10,7 @@ use Vasoft\Joke\Container\Exceptions\ContainerException;
 use Vasoft\Joke\Contract\Logging\LoggerInterface;
 use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
+use Vasoft\Joke\Exceptions\FileSystemException;
 use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Middleware\Exceptions\MiddlewareException;
@@ -35,12 +36,6 @@ use Vasoft\Joke\Support\FileSystem;
  */
 class Application
 {
-    /**
-     * Базовый путь приложения.
-     *
-     * @deprected Будет удалено в версии 2.0
-     */
-    public readonly string $basePath;
     /**
      * Коллекция глобальных middleware.
      *
@@ -85,7 +80,6 @@ class Application
         public readonly ServiceContainer $serviceContainer,
     ) {
         $this->paths = new FileSystem($basePath);
-        $this->basePath = $this->paths->basePath;
         $serviceContainer->registerSingleton(FileSystem::class, $this->paths);
         $serviceContainer->registerAlias('normalizer.path', FileSystem::class);
         $serviceContainer->registerAlias('paths', FileSystem::class);
@@ -171,7 +165,8 @@ class Application
      *
      * @return KernelConfig Инициализированная и замороженная конфигурация ядра
      *
-     * @throws ConfigException Если файл `kernel.php` существует, но не возвращает корректный объект
+     * @throws ConfigException     Если файл `kernel.php` существует, но не возвращает корректный объект
+     * @throws FileSystemException При ошибках файлового сервиса
      */
     private function initKernelConfig(Environment $env, FileSystem $paths): KernelConfig
     {
