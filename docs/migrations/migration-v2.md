@@ -173,3 +173,11 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 ## 6 Удален метод AssetFileManager::registerDirectoryReplace()
 
 Метод не выполняли ни какого функционала
+
+## 7 Перенесены константы системы CSRF
+
+| Было                              | Стало                               |
+|-----------------------------------|-------------------------------------|
+| CsrfMiddleware::CSRF_TOKEN_NAME   | CsrfTokenManager::CSRF_TOKEN_NAME   |
+| CsrfMiddleware::CSRF_TOKEN_HEADER | CsrfTokenManager::CSRF_TOKEN_HEADER |
+| CsrfMiddleware::CSRF_TOKEN_COOKIE | CsrfTokenManager::CSRF_TOKEN_COOKIE |
