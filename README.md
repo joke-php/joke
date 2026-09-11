@@ -5,7 +5,7 @@
 ---
 
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Voral/joke/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Voral/joke/?branch=master)
-[![Code Coverage](https://scrutinizer-ci.com/g/Voral/joke/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Voral/joke/?branch=master) 
+[![Code Coverage](https://scrutinizer-ci.com/g/Voral/joke/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Voral/joke/?branch=master)
 ![PHP Tests](https://github.com/Voral/joke/actions/workflows/php.yml/badge.svg)
 
 ---
@@ -21,8 +21,12 @@ PHPUnit, [voral/version-increment](https://github.com/Voral/vs-version-increment
 
 ## Требования
 
-- PHP 8.4+
 - Composer
+
+| Версия фреймворка | Минимальная версия PHP | Статус         |
+|-------------------|------------------------|----------------|
+| 2.x               | PHP ^8.5               | Актуальная     |
+| 1.x               | PHP ^8.4               | Поддерживается |
 
 ## Реализованная функциональность
 
