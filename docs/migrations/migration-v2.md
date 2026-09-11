@@ -189,4 +189,6 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 
 ## 9 Добавлен абстрактный метод 'getContentType' в `Vasoft\Joke\Http\Response\Response`
 
-В классах унаследованных от `Vasoft\Joke\Http\Response\Response`необходимо добавить реализацию этого метода 
+В классах унаследованных от `Vasoft\Joke\Http\Response\Response`необходимо добавить реализацию этого метода
+
+## 10 Метод интерфейса DiContainerInterface::registerSingleton() должен возвращать static
