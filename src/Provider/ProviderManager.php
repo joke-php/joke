@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Provider;
 
-use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
+use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Provider\ServiceProviderInterface;
 use Vasoft\Joke\Provider\Exceptions\MultipleProvideException;
 use Vasoft\Joke\Provider\Exceptions\ProviderException;
@@ -29,12 +29,12 @@ class ProviderManager
     private array $provide = [];
 
     /**
-     * @param ContainerInspectionInterface   $container        контейнер с поддержкой проверки наличия сервисов
+     * @param DiContainerInterface           $container        контейнер с поддержкой проверки наличия сервисов
      * @param list<ServiceProviderInterface> $providers        список обычных провайдеров
      * @param list<ServiceProviderInterface> $providerDiffered список отложенных провайдеров
      */
     public function __construct(
-        private readonly ContainerInspectionInterface $container,
+        private readonly DiContainerInterface $container,
         private readonly array $providers,
         private readonly array $providerDiffered,
     ) {}

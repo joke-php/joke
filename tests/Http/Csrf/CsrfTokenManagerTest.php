@@ -13,7 +13,6 @@ use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Csrf\CsrfConfig;
-use Vasoft\Joke\Http\Csrf\CsrfMiddleware;
 use Vasoft\Joke\Http\Csrf\CsrfTokenManager;
 use Vasoft\Joke\Http\Csrf\CsrfTransportMode;
 use Vasoft\Joke\Http\HttpRequest;
