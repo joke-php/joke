@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Provider;
 
-use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
+use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Contract\Provider\ServiceProviderInterface;
 use Vasoft\Joke\Provider\Exceptions\ProviderException;
@@ -18,10 +18,10 @@ readonly class ProviderManagerBuilder
     private ResolverInterface $resolver;
 
     /**
-     * @param ContainerInspectionInterface $container контейнер с поддержкой проверки наличия сервисов
+     * @param DiContainerInterface $container контейнер с поддержкой проверки наличия сервисов
      */
     private function __construct(
-        private ContainerInspectionInterface $container,
+        private DiContainerInterface $container,
     ) {
         $this->resolver = $container->getParameterResolver();
     }
@@ -29,15 +29,15 @@ readonly class ProviderManagerBuilder
     /**
      * Статический фабричный метод для создания настроенного менеджера провайдеров.
      *
-     * @param ContainerInspectionInterface $container         экземпляр контейнера
-     * @param list<class-string>           $providers         список классов обычных провайдеров
-     * @param list<class-string>           $deferredProviders список классов отложенных провайдеров
+     * @param DiContainerInterface $container         экземпляр контейнера
+     * @param list<class-string>   $providers         список классов обычных провайдеров
+     * @param list<class-string>   $deferredProviders список классов отложенных провайдеров
      *
      * @throws ProviderException если провайдер не найден, не реализует нужный интерфейс
      *                           или присутствует в обоих списках одновременно
      */
     public static function build(
-        ContainerInspectionInterface $container,
+        DiContainerInterface $container,
         array $providers,
         array $deferredProviders,
     ): ProviderManager {

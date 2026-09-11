@@ -9,7 +9,6 @@ use Vasoft\Joke\Config\ConfigManager;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
 use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
-use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
 use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Container\Exceptions\ContainerException;
@@ -20,7 +19,7 @@ use Vasoft\Joke\Container\Exceptions\ContainerException;
  * Управляет жизненным циклом сервисов, поддерживает синглтоны и прототипы,
  * автоматически разрешает зависимости через рефлексию.
  */
-abstract class BaseContainer implements ContainerInspectionInterface
+abstract class BaseContainer implements DiContainerInterface
 {
     /**
      * Регистр прототипов (новый экземпляр при каждом запросе).

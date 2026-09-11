@@ -64,4 +64,11 @@ interface DiContainerInterface
      * @throws ServiceNotFoundException  Если сервис не найден
      */
     public function get(string $name): object;
+
+    /**
+     * Проверяет наличие сервиса в контейнере без его создания.
+     *
+     * @param string $name Имя сервиса или алиас
+     */
+    public function has(string $name): bool;
 }

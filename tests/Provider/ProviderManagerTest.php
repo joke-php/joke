@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Provider;
 
 use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
+use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Provider\ProviderManager;
 use Vasoft\Joke\Provider\ProviderManagerBuilder;
@@ -22,12 +22,12 @@ use PHPUnit\Framework\MockObject\Stub;
  */
 final class ProviderManagerTest extends TestCase
 {
-    private ContainerInspectionInterface&Stub $container;
+    private DiContainerInterface&Stub $container;
     private ResolverInterface&Stub $resolver;
 
     protected function setUp(): void
     {
-        $this->container = self::createStub(ContainerInspectionInterface::class);
+        $this->container = self::createStub(DiContainerInterface::class);
         $this->resolver = self::createStub(ResolverInterface::class);
 
         $this->container->method('getParameterResolver')

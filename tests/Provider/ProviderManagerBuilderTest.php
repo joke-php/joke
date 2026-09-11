@@ -6,7 +6,7 @@ namespace Vasoft\Joke\Tests\Provider;
 
 use PHPUnit\Framework\MockObject\Stub;
 use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
+use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Provider\Exceptions\ProviderException;
 use Vasoft\Joke\Provider\ProviderManagerBuilder;
@@ -19,20 +19,16 @@ use Vasoft\Joke\Tests\Fixtures\Builder\FakeProviderBuilder;
  */
 final class ProviderManagerBuilderTest extends TestCase
 {
-    private ContainerInspectionInterface&Stub $container;
+    private DiContainerInterface&Stub $container;
     private ResolverInterface&Stub $resolver;
 
     protected function setUp(): void
     {
-        $this->container = self::createStub(ContainerInspectionInterface::class);
+        $this->container = self::createStub(DiContainerInterface::class);
         $this->resolver = self::createStub(ResolverInterface::class);
 
         $this->container->method('getParameterResolver')
             ->willReturn($this->resolver);
-
-        //        $this->resolver
-        //            ->method('resolveForConstructor')
-        //            ->willReturn([]);
     }
 
     public function testParameterResolverException(): void
