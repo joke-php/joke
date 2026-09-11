@@ -1,6 +1,6 @@
-## Основные направления рефакторинга при переходе от версии 1.* к версии 2.*
+# Основные направления рефакторинга при переходе от версии 1.* к версии 2.*
 
-### 1. Структурная реорганизация (Namespace Refactoring)
+## 1. Структурная реорганизация (Namespace Refactoring)
 
 Удалено пространство имен `Vasoft\Joke\Core`. И для еще некоторых классов изменилось пространство имен - необходимо
 произвести замену согласно таблице:
@@ -37,7 +37,7 @@
 | `Vasoft\Joke\Core\Request\Request`                       | `Vasoft\Joke\Foundation\Request`                        |
 | `Vasoft\Joke\Types\TypeConverter`                        | `Vasoft\Joke\Support\Types\TypeConverter`               |
 
-### 2. Изменение сигнатуры конструктора приложения
+## 2. Изменение сигнатуры конструктора приложения
 
 В конструкторе `Vasoft\Joke\Application` убран параметр `$routeConfigWeb` теперь его необходимо передавать через
 конфигурацию.
@@ -88,13 +88,13 @@ return new ApplicationConfig()
 
 По умолчанию путь `routes/web.php`.
 
-### 3. Изменение поведения контейнера зависимостей
+## 3. Изменение поведения контейнера зависимостей
 
 Изменился `Vasoft\Joke\Contract\Container::get(string $name): object;` теперь не может возвращать null. Если сервис не
 найден - выбрасывается исключение `Vasoft\Joke\Container\Exceptions\ServiceNotFoundException`. В соответствии с этим
 изменен `Vasoft\Joke\Container\BaseContainer`.
 
-### 4. Единая точка информации о путях проекта
+## 4. Единая точка информации о путях проекта
 
 Пути проекта необходимо получать через объект Vasoft\Joke\Support\FileSystem (алиас 'normalizer.path'). Удалены
 свойства и методы:
@@ -103,11 +103,11 @@ return new ApplicationConfig()
 - Vasoft\Joke\Config\Environment::getBasePath()
 - Vasoft\Joke\Config\EnvironmentLoader::getBasePath()
 
-### 5 FileRelatedCache изменен конструктор
+## 5 FileRelatedCache изменен конструктор
 
 - FileRelatedCache в параметры конструктора добавлен сервис FileSystem
 
-### 6 Из контейнера зависимостей удален метод register
+## 6 Из контейнера зависимостей удален метод register
 
 Из интерфейса `Vasoft\Joke\Contract\Container\DiContainerInterface` и базовой реализации
 `Vasoft\Joke\Container\BaseContainer` удален метод register.
@@ -169,3 +169,7 @@ $container->registerSingleton('service', new ServiceFactory()); // как син
 // или
 $service = $container->make(fn() => (new ServiceFactory())()); // как прототип
 ```
+
+## 6 Удален метод AssetFileManager::registerDirectoryReplace()
+
+Метод не выполняли ни какого функционала

@@ -27,15 +27,6 @@ class AssetFileManager
     protected readonly string $documentRoot;
 
     /**
-     * @var array<string, string> Маппинг для замены путей в URI
-     *
-     * @deprecated Будет удалено в версии 2.0
-     *
-     * @phpstan-ignore property.onlyWritten
-     */
-    private array $directoryReplacements = [];
-
-    /**
      * @param string $projectBasePath Базовый путь проекта
      * @param string $documentRoot    Публичная директория (documentRoot)
      * @param string $getProp         Имя GET-параметра для версионирования (по умолчанию `v`)
@@ -47,16 +38,6 @@ class AssetFileManager
     ) {
         $this->projectBasePath = rtrim($projectBasePath, '/');
         $this->documentRoot = rtrim($documentRoot, '/');
-    }
-
-    /**
-     * @deprecated Будет удалено в версии 2.0
-     */
-    public function registerDirectoryReplace(string $src, string $destination): static
-    {
-        $this->directoryReplacements[$src] = $destination;
-
-        return $this;
     }
 
     /**
