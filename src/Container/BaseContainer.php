@@ -84,32 +84,6 @@ abstract class BaseContainer implements ContainerInspectionInterface
         }
     }
 
-    /**
-     * @deprecated Передача вызываемых объектов (с помощью __invoke) будет рассматриваться как синглтоны в версии 2.0.
-     *  Используйте \Closure для фабрик.
-     */
-    public function register(string $name, callable|object|string $service): void
-    {
-        if (!$this->isValidServiceName($name)) {
-            trigger_error("Service name '{$name}' is not a valid class or interface.", E_USER_WARNING);
-        }
-        if (is_object($service)) {
-            if (!is_callable($service)) {
-                $this->registerSingleton($name, $service);
-            } else {
-                @trigger_error(
-                    'Passing a callable object to register() is deprecated. '
-                    . 'In v2.0 it will be treated as a singleton. '
-                    . 'Use a Closure for factories: fn() => $obj().',
-                    E_USER_DEPRECATED,
-                );
-                $this->serviceRegistry[$name] = $service;
-            }
-        } else {
-            $this->serviceRegistry[$name] = $service;
-        }
-    }
-
     private function isValidServiceName(string $name): bool
     {
         if (!str_contains($name, '\\')) {
