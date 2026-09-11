@@ -4,34 +4,14 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Container;
 
-use Vasoft\Joke\Support\FileSystem;
-use Vasoft\Joke\Collections\HeadersCollection;
-use Vasoft\Joke\Collections\PropsCollection;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\ConfigManager;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
-use Vasoft\Joke\Contract\Container\ApplicationContainerInterface;
 use Vasoft\Joke\Contract\Container\ContainerInspectionInterface;
 use Vasoft\Joke\Contract\Container\DiContainerInterface;
 use Vasoft\Joke\Contract\Container\ResolverInterface;
 use Vasoft\Joke\Container\Exceptions\ContainerException;
-use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
-use Vasoft\Joke\Contract\Routing\RouteInterface;
-use Vasoft\Joke\Contract\Routing\RouterInterface;
-use Vasoft\Joke\Core as LegacyCore;
-use Vasoft\Joke\Contract\Core as LegacyContract;
-use Vasoft\Joke\Foundation\Request;
-use Vasoft\Joke\Http\HttpRequest;
-use Vasoft\Joke\Http\Response\BinaryResponse;
-use Vasoft\Joke\Http\Response\HtmlResponse;
-use Vasoft\Joke\Http\Response\JsonResponse;
-use Vasoft\Joke\Http\Response\Response;
-use Vasoft\Joke\Http\ServerCollection;
-use Vasoft\Joke\Routing\Route;
-use Vasoft\Joke\Routing\Router;
-use Vasoft\Joke\Session\SessionCollection;
-use Vasoft\Joke\Support\Normalizers\Path;
 
 /**
  * Базовый контейнер внедрения зависимостей (DI Container).
@@ -88,29 +68,6 @@ abstract class BaseContainer implements ContainerInspectionInterface
     protected function initDefault(): void
     {
         $this->registerSingleton(ResolverInterface::class, new ParameterResolver($this));
-
-        $this->registerAlias(LegacyCore\ServiceContainer::class, ServiceContainer::class);
-        $this->registerAlias(LegacyCore\BaseContainer::class, self::class);
-        $this->registerAlias(LegacyCore\Routing\ParameterResolver::class, ResolverInterface::class);
-        $this->registerAlias(LegacyCore\Routing\Route::class, Route::class);
-        $this->registerAlias(LegacyCore\Routing\Router::class, Router::class);
-        $this->registerAlias(LegacyCore\Request\Request::class, Request::class);
-        $this->registerAlias(LegacyCore\Request\HttpRequest::class, HttpRequest::class);
-        $this->registerAlias(LegacyCore\Request\ServerCollection::class, ServerCollection::class);
-        $this->registerAlias(LegacyCore\Response\Response::class, Response::class);
-        $this->registerAlias(LegacyCore\Response\HtmlResponse::class, HtmlResponse::class);
-        $this->registerAlias(LegacyCore\Response\JsonResponse::class, JsonResponse::class);
-        $this->registerAlias(LegacyCore\Response\BinaryResponse::class, BinaryResponse::class);
-        $this->registerAlias(LegacyCore\Collections\Session::class, SessionCollection::class);
-        $this->registerAlias(LegacyCore\Collections\HeadersCollection::class, HeadersCollection::class);
-        $this->registerAlias(LegacyCore\Collections\PropsCollection::class, PropsCollection::class);
-        $this->registerAlias(LegacyContract\ApplicationContainerInterface::class, ApplicationContainerInterface::class);
-        $this->registerAlias(LegacyContract\DiContainerInterface::class, DiContainerInterface::class);
-        $this->registerAlias(LegacyContract\Middlewares\MiddlewareInterface::class, MiddlewareInterface::class);
-        $this->registerAlias(LegacyContract\Routing\ResolverInterface::class, ResolverInterface::class);
-        $this->registerAlias(LegacyContract\Routing\RouteInterface::class, RouteInterface::class);
-        $this->registerAlias(LegacyContract\Routing\RouterInterface::class, RouterInterface::class);
-        $this->registerAlias(Path::class, FileSystem::class);
     }
 
     public function getParameterResolver(): ResolverInterface

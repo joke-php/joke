@@ -13,14 +13,10 @@
 
 ### 1. Структурная реорганизация (Namespace Refactoring)
 
-Текущее пространство имен `Vasoft\Joke\Core` стало слишком общим и вмещает компоненты разной природы. В версии 2.0 я
-планирую отказаться от него в пользу предметно-ориентированной структуры.
+Удалено пространство имен `Vasoft\Joke\Core`. И для еще некоторых классов изменилось пространство имен - необходимо
+произвести замену согласно таблице:
 
-Это позволит сразу понимать назначение класса по его пути и упростит навигацию в коде.
-
-**Планируемая карта перемещения классов:**
-
-| Текущий путь (v1.x)                                      | Планируемый путь (v2.0)                                 | 
+| В версии v1.x                                            | Текущий путь (v2.0)                                     | 
 |----------------------------------------------------------|---------------------------------------------------------|
 | `Vasoft\Joke\Core\Application`                           | `Vasoft\Joke\Application\Application`                   |
 | `Vasoft\Joke\Core\ServiceContainer`                      | `Vasoft\Joke\Container\ServiceContainer`                |
@@ -91,11 +87,13 @@ public function __construct(
 
 ### 4. Единая точка информации о путях проекта
 
-Пути проекта необходимо получать через объект Vasoft\Joke\Support\FileSystem (алиас 'normalizer.path'). Будут удалены свойства и методы:
+Пути проекта необходимо получать через объект Vasoft\Joke\Support\FileSystem (алиас 'normalizer.path'). Будут удалены
+свойства и методы:
+
 - Vasoft\Joke\Application::$basePath
 - Vasoft\Joke\Config\Environment::getBasePath()
 - Vasoft\Joke\Config\EnvironmentLoader::getBasePath()
-- FileRelatedCache в параметры конструктора будут добавлены сервис FileSystem 
+- FileRelatedCache в параметры конструктора будут добавлены сервис FileSystem
 
 ## Стратегия перехода
 
