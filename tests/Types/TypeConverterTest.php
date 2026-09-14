@@ -6,7 +6,7 @@ namespace Vasoft\Joke\Tests\Types;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Config\Exceptions\ConfigException;
+use Vasoft\Joke\Exceptions\ConversionException;
 use Vasoft\Joke\Support\Types\TypeConverter;
 
 /**
@@ -29,32 +29,9 @@ final class TypeConverterTest extends TestCase
 
     public function testToArrayException(): void
     {
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs('Property "example" cannot be converted to array, got stdClass.');
         TypeConverter::toArray(new \stdClass(), 'example');
-    }
-
-    public function testToArrayExceptionCustom(): void
-    {
-        $object = new \stdClass();
-        ob_start();
-        echo 'test ';
-        var_dump($object);
-        $expectedMessage = ob_get_clean();
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs($expectedMessage);
-        TypeConverter::toArray($object, 'test', exceptionFactory: static function (
-            $key,
-            $value,
-        ) {
-            ob_start();
-            echo $key, ' ';
-            var_dump($value);
-            $message = ob_get_clean();
-
-            return new ConfigException($message);
-        });
     }
 
     public function testToInt(): void
@@ -69,13 +46,10 @@ final class TypeConverterTest extends TestCase
         self::assertSame(0, TypeConverter::toInt(false, 'example', 199));
     }
 
-    /**
-     * @throws ConfigException
-     */
     #[DataProvider('provideToIntExceptionCases')]
     public function testToIntException(mixed $value, string $type): void
     {
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"test\" cannot be converted to int, got {$type}.");
         TypeConverter::toInt($value, 'test', 1);
     }
@@ -90,18 +64,6 @@ final class TypeConverterTest extends TestCase
         ];
     }
 
-    public function testToIntExceptionCustom(): void
-    {
-        $value = 123.125;
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs(sprintf('test: %0.2f', $value));
-        TypeConverter::toInt($value, 'test', 1, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %0.2f', $key, $value)));
-    }
-
     public function testToString(): void
     {
         self::assertSame('empty', TypeConverter::toString(null, 'str', 'empty'));
@@ -114,13 +76,10 @@ final class TypeConverterTest extends TestCase
         self::assertSame('0', TypeConverter::toString(false, 'str', 'def'));
     }
 
-    /**
-     * @throws ConfigException
-     */
     #[DataProvider('provideToStringExceptionCases')]
     public function testToStringException(mixed $value, string $type): void
     {
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"my\" cannot be converted to string, got {$type}.");
         TypeConverter::toString($value, 'my', 'def');
     }
@@ -131,18 +90,6 @@ final class TypeConverterTest extends TestCase
             'object' => [new \stdClass(), 'stdClass'],
             'array' => [['Hello', 1], 'array'],
         ];
-    }
-
-    public function testToStringExceptionCustom(): void
-    {
-        $value = [4, 5, 6];
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('str: 4,5,6');
-        TypeConverter::toString($value, 'str', 'def', exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, implode(',', $value))));
     }
 
     public function testToBool(): void
@@ -181,7 +128,7 @@ final class TypeConverterTest extends TestCase
     #[DataProvider('provideToBoolExceptionCases')]
     public function testToBoolException(mixed $value, string $type): void
     {
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"my\" cannot be converted to bool, got {$type}.");
         TypeConverter::toBool($value, 'my', true);
     }
@@ -194,30 +141,6 @@ final class TypeConverterTest extends TestCase
             'string' => ['Joke', 'string'],
             'float' => [10.2, 'float'],
         ];
-    }
-
-    public function testToBoolExceptionCustom(): void
-    {
-        $value = [4, 5, 6];
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('str: 4,5,6');
-        TypeConverter::toBool($value, 'str', false, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, implode(',', $value))));
-    }
-
-    public function testToBoolStringExceptionCustom(): void
-    {
-        $value = 'example';
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('str: example');
-        TypeConverter::toBool($value, 'str', false, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, $value)));
     }
 
     public function testToFloat(): void
@@ -235,13 +158,10 @@ final class TypeConverterTest extends TestCase
         self::assertEqualsWithDelta(0.0, TypeConverter::toFloat(false, 'example', 3.1), 0.0001);
     }
 
-    /**
-     * @throws ConfigException
-     */
     #[DataProvider('provideToFloatExceptionCases')]
     public function testToFloatException(mixed $value, string $type): void
     {
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"test\" cannot be converted to float, got {$type}.");
         TypeConverter::toFloat($value, 'test', 1);
     }
@@ -253,15 +173,5 @@ final class TypeConverterTest extends TestCase
             'string' => ['Hello world', 'string'],
             'array' => [[1, 2, 3], 'array'],
         ];
-    }
-
-    public function testToFloatExceptionCustom(): void
-    {
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('test: apple');
-        TypeConverter::toFloat('apple', 'test', 1, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, $value)));
     }
 }
