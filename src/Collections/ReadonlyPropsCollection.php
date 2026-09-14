@@ -4,8 +4,9 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Collections;
 
-use Vasoft\Joke\Config\Exceptions\ConfigException;
-use Vasoft\Joke\Exceptions\JokeException;
+use Vasoft\Joke\Exceptions\ConversionException;
+use Vasoft\Joke\Exceptions\Property\EmptyPropertyException;
+use Vasoft\Joke\Exceptions\Property\MissingPropertyException;
 use Vasoft\Joke\Support\Types\TypeConverter;
 
 /**
@@ -53,7 +54,7 @@ class ReadonlyPropsCollection
      *
      * @return array<int|string, mixed> Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если значение не может быть преобразовано в массив
+     * @throws ConversionException если значение не может быть преобразовано в массив
      */
     public function getArray(
         string $key,
@@ -63,6 +64,35 @@ class ReadonlyPropsCollection
         $value = $this->get($key);
 
         return TypeConverter::toArray($value, $key, $default, $separator);
+    }
+
+    /**
+     * Возвращает значение как массив. Выбрасывает исключение если параметр не зарегистрирован в коллекции.
+     *
+     * Поддерживает следующие преобразования:
+     * - массив → возвращается как есть
+     * - непустая строка → разбивается по запятым на элементы массива (с trim)
+     * - пустая строка или null → выбрасывает исключение
+     *
+     * @param string           $key       Имя параметра
+     * @param non-empty-string $separator Разделитель строки
+     *
+     * @return array<int|string, mixed> Преобразованное значение
+     *
+     * @throws ConversionException      если значение не может быть преобразовано в массив
+     * @throws EmptyPropertyException   если параметр имеет пустое значение
+     * @throws MissingPropertyException если параметр не существует в коллекции
+     */
+    public function getArrayOrFail(
+        string $key,
+        string $separator = ',',
+    ): array {
+        $value = $this->getOrFail($key);
+        if ('' === $value || null === $value) {
+            throw new EmptyPropertyException($key);
+        }
+
+        return TypeConverter::toArray($value, $key, separator: $separator);
     }
 
     /**
@@ -78,13 +108,39 @@ class ReadonlyPropsCollection
      * @param string $key     Имя параметра
      * @param int    $default Значение по умолчанию, если ключ не существует, значение равно null или пустая строка
      *
-     * @throws JokeException если значение не может быть преобразовано в целое число
+     * @throws ConversionException если значение не может быть преобразовано в целое число
      */
     public function getInt(string $key, int $default): int
     {
         $value = $this->get($key);
 
         return TypeConverter::toInt($value, $key, $default);
+    }
+
+    /**
+     * Возвращает значение как целое число. Выбрасывает исключение если параметр не зарегистрирован в коллекции.
+     *
+     * Поддерживает следующие преобразования:
+     * - int → возвращается как есть
+     * - строка с целым числом (включая отрицательные) → преобразуется в int
+     * - float, представляющий целое число (например, 3.0) → преобразуется в int
+     * - bool → true=1, false=0
+     * - null или пустая строка → выбрасывает исключение
+     *
+     * @param string $key Имя параметра
+     *
+     * @throws ConversionException      если значение не может быть преобразовано в int
+     * @throws EmptyPropertyException   если параметр имеет пустое значение
+     * @throws MissingPropertyException если параметр не существует в коллекции
+     */
+    public function getIntOrFail(string $key): int
+    {
+        $value = $this->getOrFail($key);
+        if (null === $value || '' === $value) {
+            throw new EmptyPropertyException($key);
+        }
+
+        return TypeConverter::toInt($value, $key, 0);
     }
 
     /**
@@ -102,13 +158,41 @@ class ReadonlyPropsCollection
      *
      * @return string Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если значение не может быть преобразовано в строку
+     * @throws ConversionException если значение не может быть преобразовано в строку
      */
     public function getString(string $key, string $default): string
     {
         $value = $this->get($key);
 
         return TypeConverter::toString($value, $key, $default);
+    }
+
+    /**
+     * Возвращает значение как строку. Выбрасывает исключение если параметр не зарегистрирован в коллекции.
+     *
+     * Поддерживает следующие преобразования:
+     * - string → возвращается как есть
+     * - int/float → преобразуются в строку
+     * - bool → true='1', false='0'
+     * - null → бросает исключение
+     * - пустая строка → возвращается как есть
+     *
+     * @param string $key Имя параметра
+     *
+     * @return string Преобразованное значение
+     *
+     * @throws ConversionException      если значение не может быть преобразовано в string
+     * @throws EmptyPropertyException   если параметр имеет пустое значение
+     * @throws MissingPropertyException если параметр не существует в коллекции
+     */
+    public function getStringOrFail(string $key): string
+    {
+        $value = $this->getOrFail($key);
+        if (null === $value) {
+            throw new EmptyPropertyException($key);
+        }
+
+        return TypeConverter::toString($value, $key, '');
     }
 
     /**
@@ -125,14 +209,42 @@ class ReadonlyPropsCollection
      *
      * @return bool Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если строковое значение не распознано как булево
-     *                       или значение не может быть преобразовано в boolean
+     * @throws ConversionException если строковое значение не распознано как булево
+     *                             или значение не может быть преобразовано в boolean
      */
     public function getBool(string $key, bool $default): bool
     {
         $value = $this->get($key);
 
         return TypeConverter::toBool($value, $key, $default);
+    }
+
+    /**
+     * Возвращает значение как логическое (boolean). Выбрасывает исключение если параметр не зарегистрирован в коллекции.
+     *
+     * Поддерживает следующие преобразования:
+     * - bool → возвращается как есть
+     * - строка: '1', 'true', 'yes', 'on', 'y' (регистронезависимо) → true;
+     *           '0', 'false', 'no', 'off', 'n' → false
+     * - int: 0 → false, любое другое число → true
+     * - пустая строки или null: бросает исключение
+     *
+     * @param string $key Имя параметра
+     *
+     * @return bool Преобразованное значение
+     *
+     * @throws ConversionException      если значение не может быть преобразовано в boolean
+     * @throws EmptyPropertyException   если параметр имеет пустое значение
+     * @throws MissingPropertyException если параметр не существует в коллекции
+     */
+    public function getBoolOrFail(string $key): bool
+    {
+        $value = $this->getOrFail($key);
+        if (null === $value || '' === $value) {
+            throw new EmptyPropertyException($key);
+        }
+        // true передаётся лишь для удовлетворения сигнатуры toBool().
+        return TypeConverter::toBool($value, $key, true);
     }
 
     /**
@@ -150,14 +262,42 @@ class ReadonlyPropsCollection
      *
      * @return float Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если строка не является числовой
-     *                       или значение не может быть преобразовано в float
+     * @throws ConversionException если строка не является числовой
+     *                             или значение не может быть преобразовано в float
      */
     public function getFloat(string $key, float $default): float
     {
         $value = $this->get($key);
 
         return TypeConverter::toFloat($value, $key, $default);
+    }
+
+    /**
+     * Возвращает значение как число с плавающей точкой. Выбрасывает исключение если параметр не зарегистрирован в коллекции.
+     *
+     * Поддерживает следующие преобразования:
+     * - float → возвращается как есть
+     * - int → преобразуется в float
+     * - числовая строка → преобразуется в float
+     * - bool → true=1.0, false=0.0
+     * - null или пустая строка → бросает исключение
+     *
+     * @param string $key Имя параметра
+     *
+     * @return float Преобразованное значение
+     *
+     * @throws ConversionException      если значение не может быть преобразовано в float
+     * @throws EmptyPropertyException   если параметр имеет пустое значение
+     * @throws MissingPropertyException если параметр не существует в коллекции
+     */
+    public function getFloatOrFail(string $key): float
+    {
+        $value = $this->getOrFail($key);
+        if (null === $value || '' === $value) {
+            throw new EmptyPropertyException($key);
+        }
+
+        return TypeConverter::toFloat($value, $key, 0);
     }
 
     /**
@@ -185,19 +325,16 @@ class ReadonlyPropsCollection
     /**
      * Возвращает значение свойства по ключу, если не существует - выбрасывает исключение.
      *
-     * Можно переопределить исключение по умолчанию передав фабрику, которая принимает строковый
-     * параметр "имя параметра" и возвращает исключение унаследованное от JokeException
-     *
      * @param string $key Имя параметра
      *
      * @return null|array<int|string,mixed>|bool|float|int|list<mixed>|string
      *
-     * @throws JokeException
+     * @throws MissingPropertyException
      */
     public function getOrFail(string $key): array|bool|float|int|string|null
     {
         if (!$this->has($key)) {
-            throw new ConfigException('Property "' . $key . '" does not exist.');
+            throw new MissingPropertyException($key);
         }
 
         return $this->props[$key];

@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Collections;
 
 use PHPUnit\Framework\Attributes\DataProvider;
-use Vasoft\Joke\Config\Exceptions\ConfigException;
+use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Collections\PropsCollection;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Exceptions\ConversionException;
-use Vasoft\Joke\Exceptions\JokeException;
+use Vasoft\Joke\Exceptions\Property\EmptyPropertyException;
+use Vasoft\Joke\Exceptions\Property\MissingPropertyException;
 
 /**
  * @internal
@@ -61,7 +62,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
 
     public function testGetOrFailDefault(): void
     {
-        self::expectException(JokeException::class);
+        self::expectException(MissingPropertyException::class);
         self::expectExceptionMessageIs('Property "unknown" does not exist.');
         self::$collection->getOrFail('unknown');
     }
@@ -276,5 +277,70 @@ final class ReadonlyPropsCollectionTest extends TestCase
             'string' => ['Hello world', 'string'],
             'array' => [[1, 2, 3], 'array'],
         ];
+    }
+
+    #[DataProvider('provideGetTypedOrFailSuccessCases')]
+    #[TestDox('get*OrFail должно возвращать приведенное к заданному типу значение')]
+    public function testGetTypedOrFailSuccess(string $function, mixed $value, mixed $expected): void
+    {
+        $collection = new PropsCollection(['property' => $value]);
+
+        self::assertSame($expected, $collection->{$function}('property'));
+    }
+
+    public static function provideGetTypedOrFailSuccessCases(): iterable
+    {
+        yield 'array' => ['getArrayOrFail', 'example,apple', ['example', 'apple']];
+        yield 'int' => ['getIntOrFail', '123', 123];
+        yield 'string' => ['getStringOrFail', 123, '123'];
+        yield 'bool' => ['getBoolOrFail', '0', false];
+        yield 'float' => ['getFloatOrFail', '43.1', 43.1];
+    }
+
+    #[DataProvider('provideGetTypedOrFailExceptionOnEmptyCases')]
+    #[TestDox('get*OrFail должно бросать исключение если пустое значение')]
+    public function testGetTypedOrFailExceptionOnEmpty(string $function, mixed $value): void
+    {
+        $collection = new PropsCollection(['property' => $value]);
+        self::expectException(EmptyPropertyException::class);
+        self::expectExceptionMessageIs('Property "property" cannot be empty.');
+
+        $collection->{$function}('property');
+    }
+
+    public static function provideGetTypedOrFailExceptionOnEmptyCases(): iterable
+    {
+        yield 'array empty string' => ['getArrayOrFail', ''];
+        yield 'array null' => ['getArrayOrFail', null];
+        yield 'int empty string' => ['getIntOrFail', ''];
+        yield 'int null' => ['getIntOrFail', null];
+        yield 'string null' => ['getStringOrFail', null];
+        yield 'bool empty string' => ['getBoolOrFail', ''];
+        yield 'bool null' => ['getBoolOrFail', null];
+        yield 'float empty string' => ['getFloatOrFail', ''];
+        yield 'float null' => ['getFloatOrFail', null];
+    }
+
+    #[DataProvider('provideGetTypedOrFailExceptionOnWrongTypeCases')]
+    #[TestDox('get*OrFail должно бросать исключение значение нельзя привести')]
+    public function testGetTypedOrFailExceptionOnWrongType(
+        string $function,
+        mixed $value,
+        string $expectedType,
+        string $type,
+    ): void {
+        $collection = new PropsCollection(['property' => $value]);
+        self::expectException(ConversionException::class);
+        self::expectExceptionMessageIs("Property \"property\" cannot be converted to {$expectedType}, got {$type}.");
+
+        $collection->{$function}('property');
+    }
+
+    public static function provideGetTypedOrFailExceptionOnWrongTypeCases(): iterable
+    {
+        yield 'int' => ['getIntOrFail', 'tes 12', 'int', 'string'];
+        yield 'string' => ['getStringOrFail', ['test'], 'string', 'array'];
+        yield 'bool' => ['getBoolOrFail', 'example', 'bool', 'string'];
+        yield 'float' => ['getFloatOrFail', '123,11', 'float', 'string'];
     }
 }
