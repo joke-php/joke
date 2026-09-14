@@ -204,3 +204,5 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 Изменения в классе `Vasoft\Joke\Support\Types\TypeConverter`.
 Проверить код, где использовался этот параметр, обернуть в `try ... catch` и обработать стандартное исключение
 конвертора или коллекции.
+
+Кроме того сервис бросает исключения не `ConfigException`, а `ConversionException`

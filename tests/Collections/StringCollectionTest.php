@@ -53,7 +53,7 @@ final class StringCollectionTest extends TestCase
         self::assertSame('123', $collection->getStringOrFail('varInt'));
         self::assertSame('12.3', $collection->getStringOrFail('varFloat'));
         self::assertSame('1', $collection->getStringOrFail('varBoolTrue'));
-        self::assertSame('', $collection->getStringOrFail('varBoolFalse'));
+        self::assertSame('0', $collection->getStringOrFail('varBoolFalse'));
     }
 
     public function testGetStringOrFailType(): void
@@ -64,19 +64,6 @@ final class StringCollectionTest extends TestCase
         self::expectException(JokeException::class);
         self::expectExceptionMessageIs('Property "varArray" must be scalar or null to be used as string, got array.');
         $collection->getStringOrFail('varArray');
-    }
-
-    public function testGetStringOrFailTypeCustom(): void
-    {
-        $collection = new StringCollection([
-            'varArray' => [123, 'test'],
-        ]);
-        self::expectException(JokeException::class);
-        self::expectExceptionMessageIs('varArray array');
-        $collection->getStringOrFail(
-            'varArray',
-            invalidTypeFactory: static fn(string $key, string $type) => throw new JokeException($key . ' ' . $type),
-        );
     }
 
     public function testGetStringOrFailNotDefined(): void

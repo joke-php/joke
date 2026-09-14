@@ -30,42 +30,4 @@ class StringCollection extends ReadonlyPropsCollection
 
         return is_scalar($value) || null === $value ? (string) $value : $default;
     }
-
-    /**
-     * Возвращает значение по ключу как строку. Выбрасывает исключение, если:
-     * - ключ не существует
-     * - значение не является скаляром или null
-     *
-     * Для ошибки отсутствия ключа используется $missingFactory,
-     * для ошибки неверного типа — $invalidTypeFactory.
-     *
-     * @param string                                        $key                Имя параметра
-     * @param null|(callable(string,string): JokeException) $invalidTypeFactory Фабрика исключения при неверном типе;
-     *                                                                          принимает ($key, $actualType)
-     *
-     * @return string Строковое представление значения
-     *
-     * @throws JokeException При отсутствии ключа или недопустимом типе значения
-     */
-    public function getStringOrFail(
-        string $key,
-        ?callable $invalidTypeFactory = null,
-    ): string {
-        $value = parent::getOrFail($key);
-
-        if (!is_scalar($value) && null !== $value) {
-            $factory = $invalidTypeFactory ?? static fn(
-                string $k,
-                string $type,
-            ): JokeException => new ConfigException(
-                'Property "' . $k
-                . '" must be scalar or null to be used as string, got '
-                . $type . '.',
-            );
-
-            throw $factory($key, get_debug_type($value));
-        }
-
-        return (string) $value;
-    }
 }

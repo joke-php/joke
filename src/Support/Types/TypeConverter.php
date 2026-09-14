@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Support\Types;
 
 use Vasoft\Joke\Exceptions\ConversionException;
-use Vasoft\Joke\Exceptions\JokeException;
 
 /**
  * Утилитарный класс для безопасного преобразования значений к ожидаемым скалярным типам или массивам.
@@ -31,7 +30,7 @@ final class TypeConverter
      *
      * @return array<int|string, mixed> Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если значение не может быть преобразовано в массив
+     * @throws ConversionException если значение не может быть преобразовано в массив
      */
     public static function toArray(
         mixed $value,
@@ -73,7 +72,7 @@ final class TypeConverter
      *
      * @return int Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если значение не может быть преобразовано в целое число
+     * @throws ConversionException если значение не может быть преобразовано в целое число
      */
     public static function toInt(mixed $value, string $key, int $default): int
     {
@@ -113,7 +112,7 @@ final class TypeConverter
      *
      * @return string Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если значение не может быть преобразовано в строку
+     * @throws ConversionException если значение не может быть преобразовано в строку
      */
     public static function toString(
         mixed $value,
@@ -154,8 +153,8 @@ final class TypeConverter
      *
      * @return bool Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если строковое значение не распознано как булево
-     *                       или значение не может быть преобразовано в boolean
+     * @throws ConversionException если строковое значение не распознано как булево
+     *                             или значение не может быть преобразовано в boolean
      */
     public static function toBool(
         mixed $value,
@@ -205,8 +204,8 @@ final class TypeConverter
      *
      * @return float Преобразованное значение или значение по умолчанию
      *
-     * @throws JokeException если строка не является числовой
-     *                       или значение не может быть преобразовано в float
+     * @throws ConversionException если строка не является числовой
+     *                             или значение не может быть преобразовано в float
      */
     public static function toFloat(
         mixed $value,
