@@ -192,3 +192,8 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 В классах унаследованных от `Vasoft\Joke\Http\Response\Response`необходимо добавить реализацию этого метода
 
 ## 10 Метод интерфейса DiContainerInterface::registerSingleton() должен возвращать static
+
+## 11 ReadonlyPropsCollection (и наследники) из геттеров убрал параметр фабрики исключений
+
+Изменения в классах `Vasoft\Joke\Collections\ReadonlyPropsCollection`, `Vasoft\Joke\Collections\StringCollection`
+Проверить код, где использовался этот параметр, обернуть в `try ... catch` и обработать стандартное исключение конвертора или коллекции.

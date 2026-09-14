@@ -74,16 +74,6 @@ final class ReadonlyPropsCollectionTest extends TestCase
         self::assertSame(self::$data['array'], self::$collection->getOrFail('array'));
     }
 
-    public function testGetOrFailCustom(): void
-    {
-        self::expectException(JokeException::class);
-        self::expectExceptionMessageIs('unknown does not exist.');
-        self::$collection->getOrFail(
-            'unknown',
-            static fn(string $key) => new ConfigException($key . ' does not exist.'),
-        );
-    }
-
     public function testGetArray(): void
     {
         $collection = new PropsCollection([
@@ -149,18 +139,6 @@ final class ReadonlyPropsCollectionTest extends TestCase
         ];
     }
 
-    public function testGetIntExceptionCustom(): void
-    {
-        $value = 123.125;
-        $collection = new PropsCollection(['value' => $value]);
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs(sprintf('value: %0.2f', $value));
-        $collection->getInt('value', 1, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %0.2f', $key, $value)));
-    }
-
     public function testGetString(): void
     {
         $collection = new PropsCollection([
@@ -191,20 +169,6 @@ final class ReadonlyPropsCollectionTest extends TestCase
         self::expectException(ConfigException::class);
         self::expectExceptionMessageIs('Property "value" cannot be converted to string, got array.');
         $collection->getString('value', 'def');
-    }
-
-    public function testGetStringExceptionCustom(): void
-    {
-        $collection = new PropsCollection([
-            'value' => [4, 5, 6],
-        ]);
-
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('value: 4,5,6');
-        $collection->getString('value', 'def', exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, implode(',', $value))));
     }
 
     public function testGetBool(): void
@@ -270,17 +234,6 @@ final class ReadonlyPropsCollectionTest extends TestCase
         ];
     }
 
-    public function testGetBoolExceptionCustom(): void
-    {
-        $collection = new PropsCollection(['value' => [4, 5, 6]]);
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('value: 4,5,6');
-        $collection->getBool('value', false, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, implode(',', $value))));
-    }
-
     public function testGetFloat(): void
     {
         $collection = new PropsCollection([
@@ -322,16 +275,5 @@ final class ReadonlyPropsCollectionTest extends TestCase
             'string' => ['Hello world', 'string'],
             'array' => [[1, 2, 3], 'array'],
         ];
-    }
-
-    public function testGetFloatExceptionCustom(): void
-    {
-        $collection = new PropsCollection(['test' => 'apple']);
-        self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs('test: apple');
-        $collection->getFloat('test', 1, exceptionFactory: static fn(
-            $key,
-            $value,
-        ) => new ConfigException(sprintf('%s: %s', $key, $value)));
     }
 }

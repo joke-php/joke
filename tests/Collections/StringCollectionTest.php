@@ -87,18 +87,6 @@ final class StringCollectionTest extends TestCase
         $collection->getStringOrFail('varNotDefined');
     }
 
-    public function testGetStringOrFailNotDefinedCustom(): void
-    {
-        $collection = new StringCollection([]);
-        self::expectException(JokeException::class);
-        self::expectExceptionMessageIs('varNotDefined not found');
-        $collection->getStringOrFail(
-            'varNotDefined',
-            static fn(string $key) => throw new JokeException($key . ' not found'),
-        );
-    }
-
-    // Добавить тест для null
     public function testGetStringWithNull(): void
     {
         $collection = new StringCollection(['nullable' => null]);
