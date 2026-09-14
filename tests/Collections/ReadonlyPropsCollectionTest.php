@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Collections\PropsCollection;
 use PHPUnit\Framework\TestCase;
+use Vasoft\Joke\Exceptions\ConversionException;
 use Vasoft\Joke\Exceptions\JokeException;
 
 /**
@@ -125,7 +126,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     public function testGetIntException(mixed $value, string $type): void
     {
         $collection = new PropsCollection(['value' => $value]);
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"value\" cannot be converted to int, got {$type}.");
         $collection->getInt('value', 1);
     }
@@ -166,7 +167,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
             'value' => [['Hello', 1], 'array'],
         ]);
 
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs('Property "value" cannot be converted to string, got array.');
         $collection->getString('value', 'def');
     }
@@ -220,7 +221,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     public function testGetBoolException(mixed $value, string $type): void
     {
         $collection = new PropsCollection(['value' => $value]);
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"value\" cannot be converted to bool, got {$type}.");
         $collection->getBool('value', true);
     }
@@ -264,7 +265,7 @@ final class ReadonlyPropsCollectionTest extends TestCase
     public function testGetFloatException(mixed $value, string $type): void
     {
         $collection = new PropsCollection(['test' => $value]);
-        self::expectException(ConfigException::class);
+        self::expectException(ConversionException::class);
         self::expectExceptionMessageIs("Property \"test\" cannot be converted to float, got {$type}.");
         $collection->getFloat('test', 1);
     }

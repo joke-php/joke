@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Support\Types;
 
-use Vasoft\Joke\Config\Exceptions\ConfigException;
+use Vasoft\Joke\Exceptions\ConversionException;
 use Vasoft\Joke\Exceptions\JokeException;
 
 /**
@@ -24,11 +24,10 @@ final class TypeConverter
      * - пустая строка или null - возвращается значение по умолчанию
      * - скалярное значение - массив с одним элементом
      *
-     * @param mixed                                        $value            Значение параметра
-     * @param string                                       $key              Имя параметра
-     * @param array<int|string,mixed>                      $default          Значение по умолчанию значение равно пустой строке или null
-     * @param non-empty-string                             $separator        Разделитель строки
-     * @param null|(callable(string,mixed): JokeException) $exceptionFactory фабрика исключения
+     * @param mixed                   $value     Значение параметра
+     * @param string                  $key       Имя параметра
+     * @param array<int|string,mixed> $default   Значение по умолчанию значение равно пустой строке или null
+     * @param non-empty-string        $separator Разделитель строки
      *
      * @return array<int|string, mixed> Преобразованное значение или значение по умолчанию
      *
@@ -39,7 +38,6 @@ final class TypeConverter
         string $key,
         array $default = [],
         string $separator = ',',
-        ?callable $exceptionFactory = null,
     ): array {
         if ('' === $value || null === $value) {
             return $default;
@@ -56,22 +54,7 @@ final class TypeConverter
             return [$value];
         }
 
-        throw (null !== $exceptionFactory)
-            ? $exceptionFactory($key, $value)
-            : self::getException($key, $value, 'array');
-    }
-
-    /**
-     * Форматирует исключение.
-     *
-     * @param string $key   Имя параметра
-     * @param mixed  $value Значение
-     */
-    private static function getException(string $key, mixed $value, string $type): ConfigException
-    {
-        return new ConfigException(
-            'Property "' . $key . '" cannot be converted to ' . $type . ', got ' . get_debug_type($value) . '.',
-        );
+        throw new ConversionException($key, $value, 'array');
     }
 
     /**
@@ -84,16 +67,15 @@ final class TypeConverter
      * - bool - true=1, false=0
      * - null или пустая строка - возвращается значение по умолчанию
      *
-     * @param mixed                                        $value            Значение параметра
-     * @param string                                       $key              Имя параметра
-     * @param int                                          $default          Значение по умолчанию если значение равно null или пустая строка
-     * @param null|(callable(string,mixed): JokeException) $exceptionFactory фабрика исключения
+     * @param mixed  $value   Значение параметра
+     * @param string $key     Имя параметра
+     * @param int    $default Значение по умолчанию если значение равно null или пустая строка
      *
      * @return int Преобразованное значение или значение по умолчанию
      *
      * @throws JokeException если значение не может быть преобразовано в целое число
      */
-    public static function toInt(mixed $value, string $key, int $default, ?callable $exceptionFactory = null): int
+    public static function toInt(mixed $value, string $key, int $default): int
     {
         if (null === $value || '' === $value) {
             return $default;
@@ -112,9 +94,7 @@ final class TypeConverter
             return $value ? 1 : 0;
         }
 
-        throw (null !== $exceptionFactory)
-            ? $exceptionFactory($key, $value)
-            : self::getException($key, $value, 'int');
+        throw new ConversionException($key, $value, 'int');
     }
 
     /**
@@ -127,10 +107,9 @@ final class TypeConverter
      * - null - возвращается значение по умолчанию
      * - пустая строка - возвращается как есть
      *
-     * @param mixed                                        $value            Значение параметра
-     * @param string                                       $key              Имя параметра
-     * @param string                                       $default          Значение по умолчанию, если значение равно null
-     * @param null|(callable(string,mixed): JokeException) $exceptionFactory фабрика исключения
+     * @param mixed  $value   Значение параметра
+     * @param string $key     Имя параметра
+     * @param string $default Значение по умолчанию, если значение равно null
      *
      * @return string Преобразованное значение или значение по умолчанию
      *
@@ -140,7 +119,6 @@ final class TypeConverter
         mixed $value,
         string $key,
         string $default,
-        ?callable $exceptionFactory = null,
     ): string {
         if (null === $value) {
             return $default;
@@ -158,9 +136,7 @@ final class TypeConverter
             return $value ? '1' : '0';
         }
 
-        throw (null !== $exceptionFactory)
-            ? $exceptionFactory($key, $value)
-            : self::getException($key, $value, 'string');
+        throw new ConversionException($key, $value, 'string');
     }
 
     /**
@@ -172,10 +148,9 @@ final class TypeConverter
      *           '0', 'false', 'no', 'off', 'n', '' - false
      * - int: 0 - false, любое другое число - true
      *
-     * @param mixed                                        $value            Значение параметра
-     * @param string                                       $key              Имя параметра
-     * @param bool                                         $default          Значение по умолчанию, если значение равно null или пустая строка
-     * @param null|(callable(string,mixed): JokeException) $exceptionFactory фабрика исключения
+     * @param mixed  $value   Значение параметра
+     * @param string $key     Имя параметра
+     * @param bool   $default Значение по умолчанию, если значение равно null или пустая строка
      *
      * @return bool Преобразованное значение или значение по умолчанию
      *
@@ -186,7 +161,6 @@ final class TypeConverter
         mixed $value,
         string $key,
         bool $default,
-        ?callable $exceptionFactory = null,
     ): bool {
         if (null === $value || '' === $value) {
             return $default;
@@ -205,16 +179,14 @@ final class TypeConverter
                 return false;
             }
 
-            throw (null !== $exceptionFactory)
-                ? $exceptionFactory($key, $value)
-                : self::getException($key, $value, 'bool');
+            throw new ConversionException($key, $value, 'bool');
         }
 
         if (is_int($value)) {
             return 0 !== $value;
         }
 
-        throw (null !== $exceptionFactory) ? $exceptionFactory($key, $value) : self::getException($key, $value, 'bool');
+        throw new ConversionException($key, $value, 'bool');
     }
 
     /**
@@ -227,10 +199,9 @@ final class TypeConverter
      * - bool - true=1.0, false=0.0
      * - null или пустая строка - возвращается значение по умолчанию
      *
-     * @param mixed                                        $value            Значение параметра
-     * @param string                                       $key              Имя параметра
-     * @param float                                        $default          Значение по умолчанию, если пустая строка или null
-     * @param null|(callable(string,mixed): JokeException) $exceptionFactory фабрика исключения
+     * @param mixed  $value   Значение параметра
+     * @param string $key     Имя параметра
+     * @param float  $default Значение по умолчанию, если пустая строка или null
      *
      * @return float Преобразованное значение или значение по умолчанию
      *
@@ -241,7 +212,6 @@ final class TypeConverter
         mixed $value,
         string $key,
         float $default,
-        ?callable $exceptionFactory = null,
     ): float {
         if (null === $value || '' === $value) {
             return $default;
@@ -263,8 +233,6 @@ final class TypeConverter
             return $value ? 1.0 : 0.0;
         }
 
-        throw (null !== $exceptionFactory)
-            ? $exceptionFactory($key, $value)
-            : self::getException($key, $value, 'float');
+        throw new ConversionException($key, $value, 'float');
     }
 }
