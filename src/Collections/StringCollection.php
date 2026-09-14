@@ -40,7 +40,6 @@ class StringCollection extends ReadonlyPropsCollection
      * для ошибки неверного типа — $invalidTypeFactory.
      *
      * @param string                                        $key                Имя параметра
-     * @param null|(callable(string): JokeException)        $missingFactory     Фабрика исключения при отсутствии ключа
      * @param null|(callable(string,string): JokeException) $invalidTypeFactory Фабрика исключения при неверном типе;
      *                                                                          принимает ($key, $actualType)
      *
@@ -50,10 +49,9 @@ class StringCollection extends ReadonlyPropsCollection
      */
     public function getStringOrFail(
         string $key,
-        ?callable $missingFactory = null,
         ?callable $invalidTypeFactory = null,
     ): string {
-        $value = parent::getOrFail($key, $missingFactory);
+        $value = parent::getOrFail($key);
 
         if (!is_scalar($value) && null !== $value) {
             $factory = $invalidTypeFactory ?? static fn(
