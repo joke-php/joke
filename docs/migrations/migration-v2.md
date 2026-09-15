@@ -206,3 +206,10 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 конвертора или коллекции.
 
 Кроме того сервис бросает исключения не `ConfigException`, а `ConversionException`
+
+## 13 Удален StringCollection
+
+Все производные от `Vasoft\Joke\Collections\ReadonlyPropsCollection\StringCollection` классы и свойства/параметры этого
+типа преобразованы к `Vasoft\Joke\Collections\ReadonlyPropsCollection`. При этом необходимо произвести замену
+`StringCollection::getStringOrDefault` на `ReadonlyPropsCollection::getString`
+

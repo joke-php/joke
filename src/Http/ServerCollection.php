@@ -4,7 +4,8 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Http;
 
-use Vasoft\Joke\Collections\StringCollection;
+use Vasoft\Joke\Collections\ReadonlyPropsCollection;
+use Vasoft\Joke\Exceptions\ConversionException;
 use Vasoft\Joke\Exceptions\JokeException;
 
 /**
@@ -15,7 +16,7 @@ use Vasoft\Joke\Exceptions\JokeException;
  * Обрабатывает как стандартные заголовки (HTTP_*), так и специальные
  * переменные контента (CONTENT_TYPE, CONTENT_LENGTH и др.).
  */
-class ServerCollection extends StringCollection
+class ServerCollection extends ReadonlyPropsCollection
 {
     /**
      * Извлекает и нормализует HTTP-заголовки из серверных переменных.
@@ -25,6 +26,8 @@ class ServerCollection extends StringCollection
      * из соответствующих серверных переменных.
      *
      * @return array<string, string> Ассоциативный массив заголовков в стандартном HTTP-формате
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     public function getHeaders(): array
     {
@@ -34,11 +37,11 @@ class ServerCollection extends StringCollection
                 $headers[str_replace(' ', '-', ucwords(strtolower(str_replace('_', ' ', substr($key, 5)))))] = $value;
             }
         }
-        $headers['Content-Type'] = $this->getStringOrDefault('CONTENT_TYPE', 'text/html');
-        $headers['Content-Length'] = $this->getStringOrDefault('CONTENT_LENGTH', '0');
-        $headers['Content-Encoding'] = $this->getStringOrDefault('CONTENT_ENCODING', '');
-        $headers['Content-Language'] = $this->getStringOrDefault('CONTENT_LANGUAGE', '');
-        $headers['Content-MD5'] = $this->getStringOrDefault('CONTENT_MD5', '');
+        $headers['Content-Type'] = $this->getString('CONTENT_TYPE', 'text/html');
+        $headers['Content-Length'] = $this->getString('CONTENT_LENGTH', '0');
+        $headers['Content-Encoding'] = $this->getString('CONTENT_ENCODING', '');
+        $headers['Content-Language'] = $this->getString('CONTENT_LANGUAGE', '');
+        $headers['Content-MD5'] = $this->getString('CONTENT_MD5', '');
 
         return $headers;
     }
@@ -57,15 +60,17 @@ class ServerCollection extends StringCollection
      * Возвращает имя хоста текущего запроса без порта.
      *
      * @return string имя хоста или пустая строка, если определить невозможно
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     public function getHost(): string
     {
         if ($this->isHostResolved) {
             return $this->cachedHost;
         }
-        $host = $this->getStringOrDefault('HTTP_HOST', '');
+        $host = $this->getString('HTTP_HOST', '');
         if ('' === $host) {
-            $host = $this->getStringOrDefault('SERVER_NAME', '');
+            $host = $this->getString('SERVER_NAME', '');
         }
 
         if (str_starts_with($host, '[')) {
@@ -124,10 +129,12 @@ class ServerCollection extends StringCollection
      * Пытается извлечь порт из заголовка Host (например, example.com:8080).
      *
      * @return int порт из заголовка Host или 0, если порт не указан или невалиден
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     private function portFromHost(): int
     {
-        $host = $this->getStringOrDefault('HTTP_HOST', '');
+        $host = $this->getString('HTTP_HOST', '');
         if ('' !== $host && str_contains($host, ':')) {
             $parts = explode(':', $host);
             $portFromHost = (int) end($parts);
@@ -189,10 +196,12 @@ class ServerCollection extends StringCollection
      * Проверяет переменную $_SERVER['HTTPS'] на наличие значений 'on', '1' или 'yes'.
      *
      * @return bool true, если соединение считается HTTPS
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     private function isSecureByHeader(): bool
     {
-        $https = $this->getStringOrDefault('HTTPS', '');
+        $https = $this->getString('HTTPS', '');
         $value = strtolower($https);
 
         return 'on' === $value || '1' === $value || 'yes' === $value;
@@ -203,11 +212,13 @@ class ServerCollection extends StringCollection
      *
      * @return string 'http' или 'https'
      *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
+     *
      * @todo Реализовать список доверенных прокси и доверять ему, то верить полностью заголовку форварда
      */
     public function getScheme(): string
     {
-        $proto = $this->getStringOrDefault('HTTP_X_FORWARDED_PROTO', '');
+        $proto = $this->getString('HTTP_X_FORWARDED_PROTO', '');
         if ('https' === strtolower($proto)) {
             return 'https';
         }
@@ -236,6 +247,8 @@ class ServerCollection extends StringCollection
      *            При генерации чувствительных ссылок (например, сброс пароля или подтверждение email)
      *            необходимо дополнительно валидировать полученный хост согласно списка доверенных доменов
      *            из конфигурации приложения, чтобы избежать атак типа Host Header Injection.
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     public function getBaseUrl(): string
     {
