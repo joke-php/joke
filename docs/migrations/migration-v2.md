@@ -213,3 +213,4 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 типа преобразованы к `Vasoft\Joke\Collections\ReadonlyPropsCollection`. При этом необходимо произвести замену
 `StringCollection::getStringOrDefault` на `ReadonlyPropsCollection::getString`
 
+## 14 Тип ответа по умолчанию HtmlPageResponse 

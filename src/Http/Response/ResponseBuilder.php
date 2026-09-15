@@ -106,14 +106,14 @@ class ResponseBuilder
      * чтобы затем наполнить его данными в специфичном формате.
      *
      * Логика выбора класса:
-     * - Если режим авто-определения (пустая строка) → возвращает новый {@see HtmlResponse}.
+     * - Если режим авто-определения (пустая строка) → возвращает новый {@see HtmlPageResponse}.
      * - Если задан конкретный класс → возвращает экземпляр этого класса.
      *
      * @return Response новый экземпляр ответа без установленного тела
      */
     public function makeDefault(): Response
     {
-        $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : HtmlResponse::class;
+        $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : HtmlPageResponse::class;
 
         $resolver = $this->serviceContainer->getParameterResolver();
         $args = $resolver->resolveForConstructor($class);
@@ -129,7 +129,7 @@ class ResponseBuilder
      *
      * Правила преобразования:
      * - Массив (`array`) → {@see JsonResponse} (данные кодируются в JSON).
-     * - Любые другие типы (строка, число, объект, null) → {@see HtmlResponse}.
+     * - Любые другие типы (строка, число, объект, null) → {@see HtmlPageResponse}.
      *
      * @param mixed $raw входные данные для анализа
      *
@@ -137,6 +137,6 @@ class ResponseBuilder
      */
     private function determineClass(mixed $raw): string
     {
-        return is_array($raw) ? JsonResponse::class : HtmlResponse::class;
+        return is_array($raw) ? JsonResponse::class : HtmlPageResponse::class;
     }
 }
