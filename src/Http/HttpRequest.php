@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Http;
 
 use Vasoft\Joke\Collections\PropsCollection;
+use Vasoft\Joke\Exceptions\ConversionException;
 use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\Cookies\InputCookieCollection;
 use Vasoft\Joke\Session\SessionCollection;
@@ -163,10 +164,11 @@ class HttpRequest extends Request
      * Возвращает метод запроса полученный из глобальной константы $_SERVER.
      *
      * @throws WrongRequestMethodException
+     * @throws ConversionException         При невозможности преобразовать параметр к строке
      */
     private function parseMethod(): HttpMethod
     {
-        $method = strtoupper($this->server->getStringOrDefault('REQUEST_METHOD', 'GET'));
+        $method = strtoupper($this->server->getString('REQUEST_METHOD', 'GET'));
         $methodParsed = HttpMethod::tryFrom($method);
         if (null === $methodParsed) {
             throw new WrongRequestMethodException($method);
@@ -213,11 +215,13 @@ class HttpRequest extends Request
      * Возвращает путь URI без query string.
      *
      * Например, для /user/123?tab=profile вернёт /user/123.
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
      */
     public function getPath(): string
     {
         if (null === $this->path) {
-            $path = explode('?', $this->server->getStringOrDefault('REQUEST_URI', '/'));
+            $path = explode('?', $this->server->getString('REQUEST_URI', '/'));
             $this->path = $path[0];
         }
 
@@ -246,12 +250,14 @@ class HttpRequest extends Request
      *
      * @return bool true, если соединение защищено TLS/SSL, иначе False
      *
-     * @todo Реализовать поддержку доверенных прокси для корректной работы за балансировщиками.
+     * @throws ConversionException При невозможности преобразовать параметр к строке
+     *
      * @todo После реализации определять на основе $this->server->getSchema
+     * @todo Реализовать поддержку доверенных прокси для корректной работы за балансировщиками.
      */
     public function isSecure(): bool
     {
-        $https = $this->server->getStringOrDefault('HTTPS', '');
+        $https = $this->server->getString('HTTPS', '');
         $value = strtolower($https);
 
         if ('on' === $value || '1' === $value || 'yes' === $value) {

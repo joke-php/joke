@@ -243,6 +243,7 @@ class ReadonlyPropsCollection
         if (null === $value || '' === $value) {
             throw new EmptyPropertyException($key);
         }
+
         // true передаётся лишь для удовлетворения сигнатуры toBool().
         return TypeConverter::toBool($value, $key, true);
     }
