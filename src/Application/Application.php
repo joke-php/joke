@@ -12,6 +12,7 @@ use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
 use Vasoft\Joke\Exceptions\FileSystemException;
 use Vasoft\Joke\Exceptions\JokeException;
+use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Middleware\Exceptions\MiddlewareException;
 use Vasoft\Joke\Middleware\Exceptions\WrongMiddlewareException;
@@ -243,6 +244,7 @@ class Application
      */
     public function handle(HttpRequest $request): void
     {
+        $this->serviceContainer->registerSingleton(Request::class, $request);
         $next = fn() => $this->handleRoute($request);
         $response = $this->processMiddlewares($request, $this->middlewares->getArrayForRun(), $next);
         $responseBuilder = $this->serviceContainer->get(ResponseBuilder::class);
