@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http\Response;
 
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Application\Application;
-use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
 use Vasoft\Joke\Http\Response\HtmlPageResponse;
+use Vasoft\Joke\Support\FileSystem;
 
 /**
  * @internal
@@ -18,30 +19,45 @@ use Vasoft\Joke\Http\Response\HtmlPageResponse;
  */
 final class HtmlPageResponseTest extends TestCase
 {
-    private static ServiceContainer $container;
+    private static PageBuilderConfig $builderConfig;
+    private static FileSystem $fs;
+    private static CookieCollection $cookies;
 
     public static function setUpBeforeClass(): void
     {
-        self::$container = new ServiceContainer();
-        $builderConfig = new PageBuilderConfig()->setTagSeparator('');
-        self::$container->registerSingleton(PageBuilderConfig::class, $builderConfig);
-        self::$container->registerSingleton(CookieConfig::class, CookieConfig::class);
-        new Application(dirname(__DIR__, 2), self::$container);
+        self::$cookies = new CookieCollection(new CookieConfig(), true);
+        self::$builderConfig = new PageBuilderConfig()->setTagSeparator('');
+        self::$fs = new FileSystem(dirname(__DIR__, 2));
     }
 
-    public function testOnlyBody(): void
+    #[TestDox('getBody возвращает только контент страницы')]
+    public function testGetBody(): void
     {
-        $response = new HtmlPageResponse(self::$container);
-        $response->setBody('<h1>Hello World</h1>');
-        self::assertSame(
+        $response = new HtmlPageResponse(self::$cookies, self::$builderConfig, self::$fs);
+        $response->setBody(
             '<html lang="ru"><head><meta charset="UTF-8"></head><body><h1>Hello World</h1></body></html>',
+        );
+        self::assertSame(
+            '<h1>Hello World</h1>',
             $response->getBody(),
         );
     }
 
+    #[TestDox('getPage возвращает полную страницу при передаче только контента')]
+    public function testGetPage(): void
+    {
+        $response = new HtmlPageResponse(self::$cookies, self::$builderConfig, self::$fs);
+        $response->setBody('<h1>Hello World</h1>');
+        self::assertSame(
+            '<html lang="ru"><head><meta charset="UTF-8"></head><body><h1>Hello World</h1></body></html>',
+            $response->getPage(),
+        );
+    }
+
+    #[TestDox('getBodyAsString возвращает полную страницу при передаче полной страницы')]
     public function testFullHtml(): void
     {
-        $response = new HtmlPageResponse(self::$container);
+        $response = new HtmlPageResponse(self::$cookies, self::$builderConfig, self::$fs);
         $response->setBody(
             <<<'HTML'
                     <!DOCTYPE html>

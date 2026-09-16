@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Http\Response;
 
 use phpmock\phpunit\PHPMock;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Response\HtmlResponse;
 use PHPUnit\Framework\TestCase;
 
@@ -17,9 +19,16 @@ final class HtmlResponseTest extends TestCase
 {
     use PHPMock;
 
+    private static CookieCollection $cookies;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$cookies = new CookieCollection(new CookieConfig(), true);
+    }
+
     public function testGetBody(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $response->setBody('<html></html>');
         $body1 = $response->getBody();
         $body2 = $response->getBodyAsString();
@@ -29,7 +38,7 @@ final class HtmlResponseTest extends TestCase
 
     public function testDefaultContentType(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         self::assertSame('text/html', $response->headers->contentType);
     }
 
@@ -37,11 +46,13 @@ final class HtmlResponseTest extends TestCase
     {
         $headers = [];
         $mockHeader = self::getFunctionMock('Vasoft\Joke\Http\Response', 'header');
-        $mockHeader->expects(self::atLeastOnce())->willReturnCallback(static function (string $value) use (&$headers): void {
-            $headers[] = $value;
-        });
+        $mockHeader->expects(self::atLeastOnce())->willReturnCallback(
+            static function (string $value) use (&$headers): void {
+                $headers[] = $value;
+            },
+        );
 
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $response->cookies->add('cookie1', 'value1');
         $response->cookies->add('cookie2', 'value2');
 
