@@ -11,14 +11,17 @@ use PHPUnit\Framework\TestCase;
 use Random\RandomException;
 use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Csrf\CsrfConfig;
 use Vasoft\Joke\Http\Csrf\CsrfTokenManager;
 use Vasoft\Joke\Http\Csrf\CsrfTransportMode;
 use Vasoft\Joke\Http\HttpRequest;
+use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Logging\LogLevel;
 use Vasoft\Joke\Middleware\Exceptions\CsrfMismatchException;
+use Vasoft\Joke\Support\FileSystem;
 use Vasoft\Joke\Tests\Fixtures\Logger\FakeLogger;
 
 /**
@@ -39,6 +42,12 @@ final class CsrfTokenManagerTest extends TestCase
     {
         self::$container = new ServiceContainer();
         self::$container->registerSingleton(CookieConfig::class, CookieConfig::class);
+        self::$container->registerSingleton(PageBuilderConfig::class, PageBuilderConfig::class);
+        self::$container->registerSingleton(Request::class, new HttpRequest());
+        $basePath = sys_get_temp_dir() . '/joke_csrf_test' . bin2hex(random_bytes(8));
+        mkdir($basePath);
+        self::$container->registerSingleton(FileSystem::class, new FileSystem($basePath));
+
     }
 
     protected function setUp(): void

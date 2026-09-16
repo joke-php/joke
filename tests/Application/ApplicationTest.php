@@ -43,11 +43,11 @@ final class ApplicationTest extends TestCase
 
     public static function setUpBeforeClass(): void
     {
+        $base = sys_get_temp_dir() . '/joke_app_test_' . bin2hex(random_bytes(8));
         $name = 'Config' . random_int(1, 100);
-        $base = dirname(__DIR__) . \DIRECTORY_SEPARATOR . 'Fixtures' . \DIRECTORY_SEPARATOR;
         self::$basePath = $base . $name . \DIRECTORY_SEPARATOR;
         self::$bootstrapPath = self::$basePath . 'bootstrap' . \DIRECTORY_SEPARATOR;
-        mkdir(self::$bootstrapPath, recursive: true);
+        mkdir(self::$bootstrapPath, 0o775, recursive: true);
     }
 
     public static function tearDownAfterClass(): void
@@ -133,7 +133,19 @@ final class ApplicationTest extends TestCase
         ob_start();
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/not-found-url']));
         $output = ob_get_clean();
-        self::assertSame('Route not found', $output);
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Route not found
+                </body>
+                </html>
+                HTML,
+            $output,
+        );
     }
 
     public function testWildCard(): void
@@ -149,7 +161,19 @@ final class ApplicationTest extends TestCase
         ob_start();
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/not-found-url']));
         $output = ob_get_clean();
-        self::assertSame('Запрошен несуществующий путь: not-found-url', $output);
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Запрошен несуществующий путь: not-found-url
+                </body>
+                </html>
+                HTML,
+            $output,
+        );
     }
 
     #[RunInSeparateProcess]
@@ -163,7 +187,19 @@ final class ApplicationTest extends TestCase
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/Alex']));
         $output = ob_get_clean();
         self::assertSame(PHP_SESSION_ACTIVE, session_status(), 'Session middleware is not active');
-        self::assertSame('Hi Alex', $output);
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Hi Alex
+                </body>
+                </html>
+                HTML,
+            $output,
+        );
     }
 
     public function testAddMiddleware(): void
@@ -184,7 +220,19 @@ final class ApplicationTest extends TestCase
         ob_start();
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/jons']));
         $output = ob_get_clean();
-        self::assertSame('Middleware 0 begin#Middleware 3 begin#Hi jons#Middleware 3 end#Middleware 0 end', $output);
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Middleware 0 begin#Middleware 3 begin#Hi jons#Middleware 3 end#Middleware 0 end
+                </body>
+                </html>
+                HTML,
+            $output,
+        );
     }
 
     public function testAddMiddlewareAndRouteMiddleware(): void
@@ -217,7 +265,16 @@ final class ApplicationTest extends TestCase
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/jons']));
         $output = ob_get_clean();
         self::assertSame(
-            'Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Middleware 5 begin#Hi jons#Middleware 5 end#Middleware 4 end#Middleware 3 end#Middleware 0 end',
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Middleware 5 begin#Hi jons#Middleware 5 end#Middleware 4 end#Middleware 3 end#Middleware 0 end
+                </body>
+                </html>
+                HTML,
             $output,
         );
     }
@@ -247,7 +304,16 @@ final class ApplicationTest extends TestCase
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/jons']));
         $output = ob_get_clean();
         self::assertSame(
-            'Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Hi jons#Middleware 4 end#Middleware 3 end#Middleware 0 end',
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Hi jons#Middleware 4 end#Middleware 3 end#Middleware 0 end
+                </body>
+                </html>
+                HTML,
             $output,
         );
         SingleMiddleware::clean();
@@ -255,7 +321,16 @@ final class ApplicationTest extends TestCase
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name-filtered/jons']));
         $output = ob_get_clean();
         self::assertSame(
-            'Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Middleware 5 begin#Hi jons#Middleware 5 end#Middleware 4 end#Middleware 3 end#Middleware 0 end',
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Middleware 0 begin#Middleware 3 begin#Middleware 4 begin#Middleware 5 begin#Hi jons#Middleware 5 end#Middleware 4 end#Middleware 3 end#Middleware 0 end
+                </body>
+                </html>
+                HTML,
             $output,
         );
     }
@@ -268,7 +343,16 @@ final class ApplicationTest extends TestCase
         $app->handle(new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/name/jons']));
         $output = ob_get_clean();
         self::assertSame(
-            'Middleware Vasoft\Joke\Routing\Router must implements MiddlewareInterface.',
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                </head>
+                <body>
+                Middleware Vasoft\Joke\Routing\Router must implements MiddlewareInterface.
+                </body>
+                </html>
+                HTML,
             $output,
         );
     }

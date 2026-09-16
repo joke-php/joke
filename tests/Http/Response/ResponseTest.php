@@ -11,6 +11,8 @@ use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Collections\HeadersCollection;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Response\HtmlResponse;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 
@@ -25,6 +27,13 @@ final class ResponseTest extends TestCase
 
     private MockObject|MockObjectProxy $headerMock;
 
+    private static CookieCollection $cookies;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$cookies = new CookieCollection(new CookieConfig(), true);
+    }
+
     protected function setUp(): void
     {
         $this->headerMock = $this->getFunctionMock('Vasoft\Joke\Http\Response', 'header');
@@ -32,13 +41,13 @@ final class ResponseTest extends TestCase
 
     public function testDefaultStatusIsOk(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
     public function testSetStatus(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $response->setStatus(ResponseStatus::NOT_FOUND);
         self::assertSame(ResponseStatus::NOT_FOUND, $response->status);
     }
@@ -46,14 +55,14 @@ final class ResponseTest extends TestCase
     #[TestDox('При создании объекта ответа инициализируются заголовки типом контента')]
     public function testHeadersCollectionIsInitialized(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         self::assertInstanceOf(HeadersCollection::class, $response->headers);
         self::assertSame(['Content-Type' => 'text/html'], $response->headers->getAll());
     }
 
     public function testAddHeaderViaCollection(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $response->headers->set('Content-Type', 'application/json');
 
         self::assertSame(['Content-Type' => 'application/json'], $response->headers->getAll());
@@ -62,7 +71,7 @@ final class ResponseTest extends TestCase
     #[RunInSeparateProcess]
     public function testSendCallsHeaderAndEchoesBody(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $response->headers->set('X-Custom', 'test-value');
         $response->setBody('Hello, world!');
 
@@ -91,7 +100,7 @@ final class ResponseTest extends TestCase
 
     public function testSendReturnsSelf(): void
     {
-        $response = new HtmlResponse();
+        $response = new HtmlResponse(self::$cookies);
         $returned = $response->send();
         self::assertSame($response, $returned);
     }

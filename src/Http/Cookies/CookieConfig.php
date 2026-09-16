@@ -52,11 +52,12 @@ class CookieConfig extends AbstractConfig
      * Флаг обязательного использования защищенного соединения (HTTPS).
      *
      * Значение по умолчанию: true.
+     *  - null: Флаг Secure устанавливается автоматически в зависимости от схемы текущего запроса.
+     *  - true: Кука всегда помечается как Secure (только для HTTPS).
+     *  - false: Кука никогда не помечается как Secure (для разработки по HTTP).
      * Если true, браузер откажется передавать куку по незашифрованному HTTP каналу.
-     * Важно: При разработке на локальном сервере без SSL необходимо явно установить в конфигурации false через
-     * setSecure(false), иначе куки не будут сохраняться.
      */
-    public private(set) bool $secure = true;
+    public private(set) ?bool $secure = true;
     /**
      * Флаг запрета доступа к куке через JavaScript (document.cookie).
      *
@@ -127,11 +128,11 @@ class CookieConfig extends AbstractConfig
      *
      * По умолчанию включено (true). Отключение рекомендуется только для локальной разработки.
      *
-     * @param bool $secure true для включения флага Secure, false для выключения
+     * @param ?bool $secure true для включения флага Secure, false для выключения, null - автоопределение
      *
      * @throws ConfigException Если конфигурация в режиме только для чтения
      */
-    public function setSecure(bool $secure): static
+    public function setSecure(?bool $secure): static
     {
         $this->guard();
         $this->secure = $secure;

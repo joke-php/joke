@@ -43,14 +43,14 @@ final class HtmlPageResponseTest extends TestCase
         );
     }
 
-    #[TestDox('getPage возвращает полную страницу при передаче только контента')]
+    #[TestDox('getBodyAsString возвращает полную страницу при передаче только контента')]
     public function testGetPage(): void
     {
         $response = new HtmlPageResponse(self::$cookies, self::$builderConfig, self::$fs);
         $response->setBody('<h1>Hello World</h1>');
         self::assertSame(
             '<html lang="ru"><head><meta charset="UTF-8"></head><body><h1>Hello World</h1></body></html>',
-            $response->getPage(),
+            $response->getBodyAsString(),
         );
     }
 

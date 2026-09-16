@@ -6,7 +6,6 @@ namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Collections\HeadersCollection;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
-use Vasoft\Joke\Http\Cookies\CookieConfig;
 
 /**
  * Абстрактный базовый класс HTTP-ответа.
@@ -17,8 +16,6 @@ use Vasoft\Joke\Http\Cookies\CookieConfig;
  */
 abstract class Response
 {
-    /** Коллекция кук ответа */
-    public private(set) CookieCollection $cookies;
     /**
      * HTTP-статус ответа.
      *
@@ -38,11 +35,9 @@ abstract class Response
         }
     }
 
-    public function __construct(CookieConfig $cookieConfig = new CookieConfig())
+    public function __construct(public readonly CookieCollection $cookies)
     {
         $this->headers->setContentType($this->getContentType());
-        $cookieConfig->freeze();
-        $this->cookies = new CookieCollection($cookieConfig);
     }
 
     /**

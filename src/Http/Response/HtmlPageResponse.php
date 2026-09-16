@@ -4,10 +4,9 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Http\Response;
 
+use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Support\FileSystem;
 use Vasoft\Joke\Config\Environment;
-use Vasoft\Joke\Container\ServiceContainer;
-use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Response\Html\Asset\AssetFileManager;
 use Vasoft\Joke\Http\Response\Html\HtmlImporter;
 use Vasoft\Joke\Http\Response\Html\PageBuilder;
@@ -37,21 +36,15 @@ class HtmlPageResponse extends HtmlResponse
      * Зависимости (Environment, Config, FileManager) извлекаются из контейнера
      * вручную, так как на текущем этапе фреймворк не поддерживает автоматический
      * резолвинг аргументов конструктора ответа.
-     *
-     * @param ServiceContainer $container контейнер сервисов для получения конфигурации и окружения
      */
     public function __construct(
-        ServiceContainer $container,
+        CookieCollection $cookies,
+        PageBuilderConfig $pageBuilderConfig,
+        FileSystem $fs,
     ) {
-        /** @var PageBuilderConfig $pageBuilderConfig */
-        $pageBuilderConfig = $container->get(PageBuilderConfig::class);
-        /** @var CookieConfig $cookieConfig */
-        $cookieConfig = $container->get(CookieConfig::class);
-        /** @var FileSystem $paths */
-        $paths = $container->get(FileSystem::class);
-        $manager = new AssetFileManager($paths->basePath, $paths->publicPath, 'v');
+        $manager = new AssetFileManager($fs->basePath, $fs->publicPath, 'v');
         $this->builder = new PageBuilder($pageBuilderConfig, $manager);
-        parent::__construct($cookieConfig);
+        parent::__construct($cookies);
     }
 
     /**
@@ -78,6 +71,16 @@ class HtmlPageResponse extends HtmlResponse
     }
 
     /**
+     * Возвращает контент страницы (содержимое тега body).
+     *
+     * @return string полный HTML-документ
+     */
+    public function getBody(): string
+    {
+        return $this->builder->content;
+    }
+
+    /**
      * Возвращает сгенерированный HTML-код всей страницы.
      *
      * Вместо возврата сырой строки, метод делегирует генерацию билдеру,
@@ -85,7 +88,7 @@ class HtmlPageResponse extends HtmlResponse
      *
      * @return string полный HTML-документ
      */
-    public function getBody(): string
+    public function getBodyAsString(): string
     {
         return $this->builder->build();
     }

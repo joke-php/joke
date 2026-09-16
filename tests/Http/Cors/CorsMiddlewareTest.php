@@ -6,6 +6,9 @@ namespace Vasoft\Joke\Tests\Http\Cors;
 
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Application\ApplicationConfig;
+use Vasoft\Joke\Foundation\Request;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
 use Vasoft\Joke\Support\FileSystem;
 use Vasoft\Joke\Config\Environment;
 use Vasoft\Joke\Config\EnvironmentLoader;
@@ -41,13 +44,15 @@ final class CorsMiddlewareTest extends TestCase
         $container->registerAlias('env', Environment::class);
 
         $container->registerSingleton(CookieConfig::class, new CookieConfig());
+        $container->registerSingleton(PageBuilderConfig::class, new PageBuilderConfig());
+        $container->registerSingleton(Request::class, new HttpRequest());
 
         self::$builder = new ResponseBuilder(new ApplicationConfig(), $container);
     }
 
     protected function setUp(): void
     {
-        $this->response = new HtmlResponse();
+        $this->response = new HtmlResponse(new CookieCollection(new CookieConfig(), true));
     }
 
     private function defaultRouteHandler(): HtmlResponse
