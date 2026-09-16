@@ -77,6 +77,7 @@ class ParameterResolver implements ResolverInterface
      * Разрешает параметры на основе их типов и контекста.
      *
      * Для каждого параметра:
+     * - если значение в контексте уже является объектом → передаётся без преобразования
      * - если имя совпадает с ключом в контексте → использует значение из контекста
      *   - если тип — backed enum → вызывает tryFrom()
      *   - иначе → использует значение как есть
@@ -102,7 +103,7 @@ class ParameterResolver implements ResolverInterface
             $type = $this->getTypeName($param->getType());
             // todo Приведение к float и int временное решение, надо учитывать юнион типы
             if (isset($context[$name])) {
-                if ($type && class_exists($type)) {
+                if ($type && !is_object($context[$name]) && class_exists($type)) {
                     if (method_exists($type, 'tryFrom')) {
                         $args[] = $type::tryFrom($context[$name]);
                     } else {
