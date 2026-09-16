@@ -30,7 +30,6 @@ class CsrfMiddleware implements MiddlewareInterface
 {
     /**
      * @param ResponseBuilder   $responseBuilder Билдер ответа
-     * @param CsrfConfig        $config          Конфигурация CSRF. Не используется. В версии 2.* будет удален
      * @param ?CsrfTokenManager $manager         Менеджер токенов CSRF. null - только для совместимости.
      *                                           Параметр является обязательным. В версии 2.* Сигнатура изменится.
      *
@@ -38,8 +37,6 @@ class CsrfMiddleware implements MiddlewareInterface
      */
     public function __construct(
         private readonly ResponseBuilder $responseBuilder,
-        // @phpstan-ignore-next-line
-        private readonly CsrfConfig $config = new CsrfConfig(),
         private readonly ?CsrfTokenManager $manager = null,
     ) {
         if (null === $this->manager) {
