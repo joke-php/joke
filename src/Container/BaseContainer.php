@@ -147,20 +147,21 @@ abstract class BaseContainer implements DiContainerInterface
      *
      * @param callable|class-string<T> $definition Имя класса для инстанцирования или фабрика (callable).
      *                                             Зависимости конструктора/фабрики разрешаются автоматически.
+     * @param array<string,mixed>      $context    Массив переменных контекста
      *
      * @return ($definition is class-string<T> ? T : object) новый экземпляр класса или результат вызова фабрики
      *
      * @throws ParameterResolveException если не удалось разрешить зависимости конструктора или фабрики
      */
-    public function make(callable|string $definition): object
+    public function make(callable|string $definition, array $context = []): object
     {
         $resolver = $this->getParameterResolver();
         if (is_callable($definition)) {
-            $args = $resolver->resolveForCallable($definition);
+            $args = $resolver->resolveForCallable($definition, $context);
 
             return $definition(...$args);
         }
-        $args = $resolver->resolveForConstructor($definition);
+        $args = $resolver->resolveForConstructor($definition, $context);
 
         return new $definition(...$args);
     }
