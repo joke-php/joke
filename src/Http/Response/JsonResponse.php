@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Http\Response;
 
-use Vasoft\Joke\Http\Response\Response as NewResponse;
-
 /**
  * HTTP-ответ в формате JSON.
  *
@@ -13,7 +11,7 @@ use Vasoft\Joke\Http\Response\Response as NewResponse;
  * и преобразует переданные данные в JSON при отправке.
  * Поддерживает только массивы и объекты, совместимые с json_encode().
  */
-class JsonResponse extends NewResponse
+class JsonResponse extends Response
 {
     /**
      * Тело ответа в виде массива (или объекта, совместимого с json_encode).

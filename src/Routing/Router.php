@@ -7,7 +7,7 @@ namespace Vasoft\Joke\Routing;
 use Vasoft\Joke\Contract\Routing\RouterInterface;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
-use Vasoft\Joke\Http\Response\HtmlResponse;
+use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
 use Vasoft\Joke\Container\ServiceContainer;
 
@@ -151,12 +151,15 @@ class Router implements RouterInterface
 
     private function getDefaultOptionsRoute(): Route
     {
+        /** @var ResponseBuilder $responseBuilder */
+        $responseBuilder = $this->serviceContainer->get(ResponseBuilder::class);
+
         return new Route(
             $this->serviceContainer,
             '{*}',
             HttpMethod::OPTIONS,
-            static function () {
-                $response = new HtmlResponse();
+            static function () use ($responseBuilder) {
+                $response = $responseBuilder->makeDefault();
 
                 $allowed = implode(
                     ', ',

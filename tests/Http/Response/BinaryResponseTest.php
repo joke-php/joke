@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http\Response;
 
+use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
 use Vasoft\Joke\Tests\Fixtures\Http\Response\DummyFileResponse;
 use PHPUnit\Framework\TestCase;
@@ -15,9 +17,16 @@ use PHPUnit\Framework\TestCase;
  */
 final class BinaryResponseTest extends TestCase
 {
+    private static CookieCollection $cookies;
+
+    public static function setUpBeforeClass(): void
+    {
+        self::$cookies = new CookieCollection(new CookieConfig(), true);
+    }
+
     public function testEmpty(): void
     {
-        $instance = new DummyFileResponse();
+        $instance = new DummyFileResponse(self::$cookies);
         ob_start();
         $instance->send();
         ob_end_clean();
@@ -41,7 +50,7 @@ final class BinaryResponseTest extends TestCase
         file_put_contents($tempFile, str_repeat('*', $length));
 
         try {
-            $instance = new DummyFileResponse();
+            $instance = new DummyFileResponse(self::$cookies);
             $instance->load($tempFile);
             ob_start();
             $instance->send();
@@ -68,7 +77,7 @@ final class BinaryResponseTest extends TestCase
         file_put_contents($tempFile, str_repeat('*', $length));
 
         try {
-            $instance = new DummyFileResponse();
+            $instance = new DummyFileResponse(self::$cookies);
             $instance->load($tempFile);
             $instance->filename = '/example/base.pdf';
             ob_start();
@@ -96,7 +105,7 @@ final class BinaryResponseTest extends TestCase
         file_put_contents($tempFile, str_repeat('*', $length));
 
         try {
-            $instance = new DummyFileResponse();
+            $instance = new DummyFileResponse(self::$cookies);
             $instance->load($tempFile);
             $instance->setBody('test');
             ob_start();
@@ -121,7 +130,7 @@ final class BinaryResponseTest extends TestCase
         $baseName = 'test' . $length . '.joke';
         $tempFile = dirname(__DIR__, 2) . '/Fixtures/cache/' . $baseName;
 
-        $instance = new DummyFileResponse();
+        $instance = new DummyFileResponse(self::$cookies);
         self::expectException(NotFoundException::class);
         self::expectExceptionMessageIs('File not found');
         $instance->load($tempFile);
@@ -129,7 +138,7 @@ final class BinaryResponseTest extends TestCase
 
     public function testCustomContent(): void
     {
-        $instance = new DummyFileResponse();
+        $instance = new DummyFileResponse(self::$cookies);
         $instance->setBody('test');
         $instance->filename = 'test.pdf';
         ob_start();
@@ -147,7 +156,7 @@ final class BinaryResponseTest extends TestCase
 
     public function testBody(): void
     {
-        $instance = new DummyFileResponse();
+        $instance = new DummyFileResponse(self::$cookies);
         $instance->setBody('test');
         self::assertSame($instance->getBodyAsString(), $instance->getBody());
     }

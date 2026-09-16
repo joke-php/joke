@@ -7,6 +7,7 @@ namespace Vasoft\Joke\Tests\Http\Csrf;
 use phpmock\phpunit\PHPMock;
 use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Csrf\CsrfTokenManager;
 use Vasoft\Joke\Http\Response\Response;
@@ -32,6 +33,7 @@ final class CsrfMiddlewareTest extends TestCase
         self::$container = new ServiceContainer();
         self::$container->registerSingleton(CookieConfig::class, CookieConfig::class);
         self::$container->registerSingleton(CsrfTokenManager::class, CsrfTokenManager::class);
+        self::$container->registerSingleton(Request::class, new HttpRequest());
     }
 
     public function testRequiredTokenManager(): void

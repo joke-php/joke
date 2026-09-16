@@ -177,6 +177,29 @@ return [
 ];
 ```
 
+### Best Practice: Управление безопасностью через .env
+
+Для параметров безопасности, которые различаются в зависимости от окружения (например, флаг `Secure` для cookie),
+рекомендуется использовать переменные окружения вместо жесткого кодирования значений в PHP-файлах.
+Поскольку парсер .env автоматически преобразует строки 'true' и 'false' в соответствующие типы PHP, вы можете напрямую
+передавать их в сеттеры конфигурации:
+Пример в config/cookies.php:
+```php
+<?php
+/** @var \Vasoft\Joke\Config\Environment $env */
+
+use Vasoft\Joke\Http\Cookies\CookieConfig;
+
+return new CookieConfig()
+    // Значение берется из COOKIE_SECURE в .env
+    // Если переменная не задана, используется дефолтное true (безопасный режим)
+    ->setSecure($env->get('COOKIE_SECURE', true))
+    ->setHttpOnly(true);
+```
+Это позволяет держать код конфигурации неизменным для всех сред, управляя поведением исключительно через .env файлы:
+* `.env.production`: `COOKIE_SECURE=true`
+* `.env.local`: `COOKIE_SECURE=false`
+
 ---
 
 ### Доступ к конфигурации

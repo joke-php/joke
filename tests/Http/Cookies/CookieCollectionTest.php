@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http\Cookies;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Http\Cookies\Cookie;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
 use PHPUnit\Framework\TestCase;
@@ -30,7 +32,25 @@ final class CookieCollectionTest extends TestCase
             ->setHttpOnly(true)
             ->setSameSite(SameSiteOption::Lax);
 
-        $this->collection = new CookieCollection($this->config);
+        $this->collection = new CookieCollection($this->config, true);
+    }
+
+    #[TestDox('Должен при автоопределении защищенного соединения правильно устанавливать secure')]
+    #[DataProvider('provideAutoDetectSecureCases')]
+    public function testAutoDetectSecure(bool $requestSecureMode): void
+    {
+        $config = new CookieConfig();
+        $config->setSecure(null);
+        $collection = new CookieCollection($config, $requestSecureMode);
+        $collection->add('session_id', 'abc123');
+        $cookies = iterator_to_array($collection);
+        self::assertSame($requestSecureMode, $cookies['session_id##/']->secure);
+    }
+
+    public static function provideAutoDetectSecureCases(): iterable
+    {
+        yield 'secure' => [true];
+        yield 'not secure' => [false];
     }
 
     public function testAddWithDefaultConfig(): void

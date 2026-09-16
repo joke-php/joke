@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Routing;
 
+use Vasoft\Joke\Application\Application;
+use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
@@ -23,6 +25,7 @@ final class RouterTest extends TestCase
     public static function setUpBeforeClass(): void
     {
         self::$serviceContainer = new ServiceContainer();
+        new Application(dirname(__DIR__, 2), self::$serviceContainer);
         parent::setUpBeforeClass();
     }
 
@@ -38,30 +41,37 @@ final class RouterTest extends TestCase
         $routeOptions = $router->options('/options', static fn() => 'options', 'route-options');
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routeGet), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::GET, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/post']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routePost), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::POST, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'PUT', 'REQUEST_URI' => '/put']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routePut), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::PUT, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'DELETE', 'REQUEST_URI' => '/delete']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routeDelete), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::DELETE, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'PATCH', 'REQUEST_URI' => '/patch']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routePatch), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::PATCH, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'HEAD', 'REQUEST_URI' => '/head']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routeHead), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::HEAD, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'OPTIONS', 'REQUEST_URI' => '/options']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame(spl_object_id($routeOptions), spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::OPTIONS, $router->findRoute($request)->method);
     }
@@ -71,6 +81,7 @@ final class RouterTest extends TestCase
         $router = new Router(self::$serviceContainer);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'OPTIONS', 'REQUEST_URI' => '/options']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         $request = $router->findRoute($request)->run($request);
 
 
@@ -87,30 +98,37 @@ final class RouterTest extends TestCase
         $routeId = spl_object_id($route);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::GET, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::POST, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'PUT', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::PUT, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'DELETE', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::DELETE, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'PATCH', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::PATCH, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'HEAD', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::HEAD, $router->findRoute($request)->method);
 
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'OPTIONS', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNotSame($routeId, spl_object_id($router->findRoute($request)));
         self::assertSame(HttpMethod::OPTIONS, $router->findRoute($request)->method);
     }
@@ -120,6 +138,7 @@ final class RouterTest extends TestCase
         $router = new Router(self::$serviceContainer);
         $router->get('/get', static fn() => 'get', 'route-get');
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'POST', 'REQUEST_URI' => '/get']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNull($router->findRoute($request));
     }
 
@@ -128,6 +147,7 @@ final class RouterTest extends TestCase
         $router = new Router(self::$serviceContainer);
         $router->get('/get', static fn() => 'get', 'route-get');
         $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/unknown']);
+        self::$serviceContainer->registerSingleton(Request::class, $request);
         self::assertNull($router->findRoute($request));
     }
 

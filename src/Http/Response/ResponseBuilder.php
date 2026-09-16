@@ -5,7 +5,14 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Application\ApplicationConfig;
+use Vasoft\Joke\Container\Exceptions\ContainerException;
+use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
+use Vasoft\Joke\Container\Exceptions\ServiceNotFoundException;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Exceptions\ConversionException;
+use Vasoft\Joke\Foundation\Request;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\HttpRequest;
 
 /**
  * Фабрика-билдер для создания объектов HTTP-ответов.
@@ -80,6 +87,11 @@ class ResponseBuilder
      * @param mixed $raw Сырые данные, возвращенные контроллером или middleware (массив, строка, объект и т.д.).
      *
      * @return Response готовый объект ответа, готовый к отправке клиенту
+     *
+     * @throws ContainerException        в случае ошибок контейнера
+     * @throws ParameterResolveException в случаен ошибок определения параметров
+     * @throws ServiceNotFoundException  Если требующийся сервис не найден
+     * @throws ConversionException       В случае ошибок приведения типов
      */
     public function make(mixed $raw): Response
     {
@@ -87,12 +99,7 @@ class ResponseBuilder
             return $raw;
         }
         $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : $this->determineClass($raw);
-
-        $resolver = $this->serviceContainer->getParameterResolver();
-        $args = $resolver->resolveForConstructor($class);
-
-        /** @var Response $response */
-        $response = new $class(...$args);
+        $response = $this->buildResponse($class);
         $response->setBody($raw);
 
         return $response;
@@ -110,16 +117,40 @@ class ResponseBuilder
      * - Если задан конкретный класс → возвращает экземпляр этого класса.
      *
      * @return Response новый экземпляр ответа без установленного тела
+     *
+     * @throws ContainerException        в случае ошибок контейнера
+     * @throws ParameterResolveException в случаен ошибок определения параметров
+     * @throws ServiceNotFoundException  Если требующийся сервис не найден
+     * @throws ConversionException       В случае ошибок приведения типов
      */
     public function makeDefault(): Response
     {
         $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : HtmlPageResponse::class;
 
-        $resolver = $this->serviceContainer->getParameterResolver();
-        $args = $resolver->resolveForConstructor($class);
+        return $this->buildResponse($class);
+    }
 
+    /**
+     * Непосредственное создание ответа заданного класса.
+     *
+     * @param class-string $className
+     *
+     * @throws ContainerException        в случае ошибок контейнера
+     * @throws ParameterResolveException в случаен ошибок определения параметров
+     * @throws ServiceNotFoundException  Если требующийся сервис не найден
+     * @throws ConversionException       В случае ошибок приведения типов
+     */
+    private function buildResponse(string $className): Response
+    {
+        /** @var HttpRequest $request */
+        $request = $this->serviceContainer->get(Request::class);
+        /** @var CookieCollection $cookies */
+        $cookies = $this->serviceContainer->make(
+            CookieCollection::class,
+            ['isSecureConnection' => $request->isSecure()],
+        );
 
-        return new $class(...$args);
+        return $this->serviceContainer->make($className, ['cookies' => $cookies]);
     }
 
     /**

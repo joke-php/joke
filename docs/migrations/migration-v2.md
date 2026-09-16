@@ -214,3 +214,9 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 `StringCollection::getStringOrDefault` на `ReadonlyPropsCollection::getString`
 
 ## 14 Тип ответа по умолчанию HtmlPageResponse 
+## 15 Изменена сигнатура конструктора CookieCollection
+## 16 Изменена сигнатура конструктора Response
+А так же у классов наследников HtmlResponse, HtmlPageResponse, JsonResponse, BinaryResponse
+## 17 HtmlPageResponse::getBody изменил поведение
+HtmlPageResponse::getBody - возвращает только контент страницы
+## 18 CsrfMiddleware из параметра конструктора убран CsrfConfig 

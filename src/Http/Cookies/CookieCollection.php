@@ -20,7 +20,11 @@ class CookieCollection implements \IteratorAggregate
     /** @var array<string, Cookie> Ассоциативный массив кук, где ключ — композитный индекс. */
     private array $cookies = [];
 
-    public function __construct(private readonly CookieConfig $config) {}
+    /**
+     * @param CookieConfig $config             Конфигурация cookie
+     * @param bool         $isSecureConnection выполняется защищенное соединение или нет
+     */
+    public function __construct(private readonly CookieConfig $config, private readonly bool $isSecureConnection) {}
 
     /**
      * Возвращает итератор для обхода коллекции кук.
@@ -77,7 +81,7 @@ class CookieCollection implements \IteratorAggregate
             $lifetime ?? $this->config->lifetime,
             $path ?? $this->config->path,
             $domain ?? $this->config->domain,
-            $secure ?? $this->config->secure,
+            $secure ?? $this->config->secure ?? $this->isSecureConnection,
             $httpOnly ?? $this->config->httpOnly,
             $sameSite ?? $this->config->sameSite,
         );

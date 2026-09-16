@@ -10,6 +10,7 @@ use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Config\Environment;
 use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Contract\Logging\LoggerInterface;
+use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\Response\HtmlResponse;
 use Vasoft\Joke\Http\Response\JsonResponse;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
@@ -33,6 +34,7 @@ final class ExceptionMiddlewareTest extends TestCase
         self::$container = new ServiceContainer();
         new Application(dirname(__DIR__, 2), self::$container);
         self::$container->registerSingleton(LoggerInterface::class, NullLogger::class);
+        self::$container->registerSingleton(Request::class, new HttpRequest());
         self::$container->registerAlias('logger', LoggerInterface::class);
         self::$container->registerSingleton(
             ResponseBuilder::class,
@@ -69,7 +71,7 @@ final class ExceptionMiddlewareTest extends TestCase
         $container->registerSingleton(LoggerInterface::class, NullLogger::class);
         $container->registerAlias('logger', LoggerInterface::class);
         $container->registerSingleton(ResponseBuilder::class, new ResponseBuilder($appConfig, $container));
-
+        $container->registerSingleton(Request::class, new HttpRequest());
         $foo = static function (): void {
             throw new \Exception('Some exception');
         };
@@ -91,7 +93,7 @@ final class ExceptionMiddlewareTest extends TestCase
         $container->registerAlias('logger', LoggerInterface::class);
         $container->registerSingleton(ResponseBuilder::class, new ResponseBuilder($appConfig, $container));
         $container->registerSingleton(Environment::class, $envMock);
-
+        $container->registerSingleton(Request::class, new HttpRequest());
         $foo = static function (): void {
             throw new \Exception('Some exception');
         };

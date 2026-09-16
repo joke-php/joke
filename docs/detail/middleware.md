@@ -75,6 +75,9 @@ $router->get('/informer', Informer::class)
 2. **Обработка запроса:** Передаёт управление следующему мидлвару или контроллеру.
 3. **Внедрение токена:** Вызывает `CsrfTokenManager::attach()` для добавления токена в ответ.
 
+> Примечание: Если вы используете режим доставки COOKIE, убедитесь, что флаг Secure в настройках CookieConfig
+> соответствует вашему окружению. На продакшене (HTTPS) это критически важно для защиты токена от перехвата.
+
 ### Проверка токена
 
 Для небезопасных HTTP-методов (POST, PUT, DELETE, PATCH) мидлвар проверяет совпадение клиентского токена с серверным.
@@ -152,7 +155,7 @@ $csrfConfig = (new CsrfConfig())
     ->setCookieConfig(
         (new CookieConfig())
             ->setLifetime(3600)
-            ->setSecure(true)
+            ->setSecure($env->get('COOKIE_SECURE', true))
             ->setSameSite('Strict')
     );
 ```
