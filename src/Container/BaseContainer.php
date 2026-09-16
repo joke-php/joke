@@ -22,12 +22,6 @@ use Vasoft\Joke\Container\Exceptions\ContainerException;
 abstract class BaseContainer implements DiContainerInterface
 {
     /**
-     * Регистр прототипов (новый экземпляр при каждом запросе).
-     *
-     * @var array<string, callable|class-string>
-     */
-    private array $serviceRegistry = [];
-    /**
      * Регистр определений синглтонов.
      *
      * @var array<string, callable|class-string>
@@ -100,10 +94,7 @@ abstract class BaseContainer implements DiContainerInterface
         if (null !== $result) {
             return $result;
         }
-        $result = $this->getService($name);
-        if (null !== $result) {
-            return $result;
-        }
+
         if (is_subclass_of($name, AbstractConfig::class) && $this->has(ConfigManager::class)) {
             $configManager = $this->get(ConfigManager::class);
 
@@ -114,25 +105,6 @@ abstract class BaseContainer implements DiContainerInterface
         }
 
         throw new ServiceNotFoundException($name);
-    }
-
-    /**
-     * Создаёт новый экземпляр прототипа.
-     *
-     * @param string $name Имя сервиса
-     *
-     * @return null|object Экземпляр сервиса или null, если не зарегистрирован
-     *
-     * @throws ParameterResolveException При ошибках
-     */
-    private function getService(string $name): ?object
-    {
-        ['definition' => $definition] = $this->resolveEntry($name, $this->serviceRegistry);
-        if (null === $definition) {
-            return null;
-        }
-
-        return $this->make($definition);
     }
 
     /**
