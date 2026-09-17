@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Http\Response;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Foundation\Request;
@@ -12,6 +13,7 @@ use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
+use Vasoft\Joke\Http\Response\HtmlPageResponse;
 use Vasoft\Joke\Http\Response\HtmlResponse;
 use Vasoft\Joke\Http\Response\JsonResponse;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
@@ -46,8 +48,7 @@ final class ResponseBuilderTest extends TestCase
         if (is_string($response) && str_starts_with($response, 'Vasoft\Joke\\')) {
             $response = new $response(self::$cookies);
         }
-        $builder = new ResponseBuilder(new ApplicationConfig(), self::$container)
-            ->setDefaultResponseClass($defaultResponse);
+        $builder = new ResponseBuilder(new ApplicationConfig()->setResponseClass($defaultResponse), self::$container);
         $response = $builder->make($response);
         self::assertInstanceOf($expectedResponse, $response);
     }
@@ -72,5 +73,24 @@ final class ResponseBuilderTest extends TestCase
             'Cannot assign string to property Vasoft\Joke\Http\Response\JsonResponse::$body of type array',
         );
         $builder->make('Test');
+    }
+
+    #[TestDox('Текущий тип ответа имеет самый высокий приоритет')]
+    public function testCurrentResponseClassOverrideApplicationLevel(): void
+    {
+        $config = new ApplicationConfig()->setResponseClass(JsonResponse::class);
+        $builder = new ResponseBuilder($config, self::$container);
+        $builder->setCurrentResponseClass(HtmlResponse::class);
+        self::assertInstanceOf(HtmlResponse::class, $builder->make('Test'));
+    }
+
+    #[TestDox('Пустые строки в качестве класса по умолчанию приводят к автоопределению')]
+    public function testEmptyStringEqualAutoDetermineClass(): void
+    {
+        $config = new ApplicationConfig()->setResponseClass(' ');
+        $builder = new ResponseBuilder($config, self::$container);
+        $builder->setCurrentResponseClass(' ');
+        self::assertInstanceOf(HtmlPageResponse::class, $builder->make('Test'));
+        self::assertInstanceOf(JsonResponse::class, $builder->make(['Test' => 'test']));
     }
 }

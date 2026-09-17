@@ -11,9 +11,9 @@ use Vasoft\Joke\Http\Response\HtmlResponse;
 class ApplicationConfig extends AbstractConfig
 {
     /**
-     * @var ''|class-string Тип ответа по умолчанию
+     * @var null|class-string Тип ответа по умолчанию
      */
-    private string $responseClass = '';
+    private ?string $responseClass = null;
     private string $fileRoues = 'routes/web.php';
 
     /**
@@ -42,9 +42,9 @@ class ApplicationConfig extends AbstractConfig
     }
 
     /**
-     * @return ''|class-string
+     * @return null|class-string
      */
-    public function getResponseClass(): string
+    public function getResponseClass(): ?string
     {
         return $this->responseClass;
     }
@@ -53,15 +53,16 @@ class ApplicationConfig extends AbstractConfig
      * Устанавливает тип ответа по умолчанию для всего приложения.
      *
      * По умолчанию включено авто-определение типа (массив -> JsonResponse, остальное -> HtmlResponse).
-     * Для включения строгого режима передайте имя класса (например, JsonReponse::class).
+     * Для включения строгого режима передайте имя класса (например, JsonResponse::class).
+     * Если передать null - режим автоопределения
      *
-     * @param ''|class-string $responseClass Тип ответа по умолчанию
+     * @param null|class-string $responseClass Тип ответа по умолчанию
      *
      * @return $this
      *
      * @throws ConfigException
      */
-    public function setResponseClass(string $responseClass): static
+    public function setResponseClass(?string $responseClass): static
     {
         $this->guard();
         $this->responseClass = $responseClass;
