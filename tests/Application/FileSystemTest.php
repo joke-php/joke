@@ -356,7 +356,7 @@ final class FileSystemTest extends TestCase
         $fileGetContents->expects(self::exactly(1))->willReturn(false);
         $this->expectException(FileSystemException::class);
         $path = $this->fileSystem->basePath . 'nonexistent.txt';
-        $this->expectExceptionMessageIs("Failed to read file: '{$path}'.");
+        $this->expectExceptionMessageIs("Failed to read file: \"{$path}\".");
         $this->fileSystem->readFile($path);
     }
 

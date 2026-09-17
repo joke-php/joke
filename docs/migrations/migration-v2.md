@@ -220,3 +220,4 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 ## 17 HtmlPageResponse::getBody изменил поведение
 HtmlPageResponse::getBody - возвращает только контент страницы
 ## 18 CsrfMiddleware из параметра конструктора убран CsrfConfig 
+## 19 BinaryResponse не допускает загрузку файлов находящихся за пределами каталога проекта 
