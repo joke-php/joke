@@ -222,3 +222,5 @@ HtmlPageResponse::getBody - возвращает только контент с�
 ## 18 CsrfMiddleware из параметра конструктора убран CsrfConfig 
 ## 19 BinaryResponse не допускает загрузку файлов находящихся за пределами каталога проекта 
 ## 20 FileSystem::validatePath выбрасывает исключение если передан пустой путь
+## 21 Удален метод ResponseBuilder::setDefaultResponseBuilder
+Вместо него следует использовать ResponseBuilder::setCurrentResponseClass()

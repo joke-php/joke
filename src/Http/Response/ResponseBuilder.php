@@ -20,26 +20,33 @@ use Vasoft\Joke\Http\HttpRequest;
  * Отвечает за инкапсуляцию логики выбора конкретного класса ответа ({@see Response})
  * на основе глобальной конфигурации приложения и контекста выполнения.
  *
- * Поддерживает два режима работы:
- * 1. **Режим авто-определения (по умолчанию)**: Если в конфигурации не указан конкретный класс,
- *    билдер автоматически выбирает тип ответа исходя из типа данных:
+ * Приоритет выбора класса ответа:
+ * 1. {@see $currentResponseClass} — временное переопределение для текущего маршрута/группы.
+ * 2. {@see $defaultResponseClass} — класс из конфигурации приложения.
+ * 3. Авто-определение ({@see determineClass()}) — fallback на основе типа данных:
  *    - Массивы оборачиваются в {@see JsonResponse}.
- *    - Скалярные значения и объекты — в {@see HtmlResponse}.
- *
- * 2. **Режим строгого типа**: Если в конфигурации или через метод {@see setDefaultResponseClass()}
- *    явно указан класс ответа, билдер создает экземпляр именно этого класса.
- *    В этом режиме разработчик обязан передавать данные, совместимые с телом ответа
- *    (например, массив для JSON), иначе возникнет ошибка типизации.
+ *    - Скалярные значения и объекты — в {@see HtmlPageResponse}.
  */
 class ResponseBuilder
 {
     /**
-     * Класс ответа по умолчанию, полученный из конфигурации приложения.
-     * Пустая строка ('') означает активацию режима авто-определения.
+     * Текущий класс ответа для активного контекста (маршрут/группа).
      *
-     * @var ''|class-string<Response>
+     * Приоритет использования:
+     * 1. Значение этого свойства (если задано) — переопределяет всё
+     * 2. {@see $defaultResponseClass} из конфигурации приложения
+     * 3. Авто-определение (fallback)
+     *
+     * @var null|class-string<Response>
      */
-    private string $defaultResponseClass = '';
+    private ?string $currentResponseClass = null;
+    /**
+     * Класс ответа по умолчанию, полученный из конфигурации приложения.
+     * Значение null означает активацию режима авто-определения.
+     *
+     * @var null|class-string<Response>
+     */
+    private ?string $defaultResponseClass = null;
 
     /**
      * Создает экземпляр билдера и инициализирует настройки из конфигурации приложения.
@@ -51,25 +58,26 @@ class ResponseBuilder
         ApplicationConfig $appConfig,
         private readonly ServiceContainer $serviceContainer,
     ) {
-        $this->defaultResponseClass = $appConfig->getResponseClass();
+        $defaultClass = $appConfig->getResponseClass();
+        if (null !== $defaultClass && '' === trim($defaultClass)) {
+            $defaultClass = null;
+        }
+        $this->defaultResponseClass = $defaultClass;
     }
 
     /**
-     * Устанавливает класс ответа по умолчанию для текущего экземпляра билдера.
+     * Устанавливает текущий класс ответа для активного контекста (маршрут/группа).
      *
-     * Позволяет динамически переопределять тип ответа в рамках выполнения запроса
-     * (например, внутри middleware или специфических групп маршрутов).
+     * @param null|class-string<Response> $currentResponseClass
      *
-     * Если передана пустая строка, метод игнорирует вызов, сохраняя текущее состояние.
-     * Это предотвращает случайный сброс настроек в режим авто-определения, если он не был активен изначально.
-     *
-     * @param ''|class-string<Response> $defaultResponseClass полный имя класса ответа
+     * @return ResponseBuilder
      */
-    public function setDefaultResponseClass(string $defaultResponseClass): static
+    public function setCurrentResponseClass(?string $currentResponseClass): static
     {
-        if ('' !== $defaultResponseClass) {
-            $this->defaultResponseClass = $defaultResponseClass;
+        if (null !== $currentResponseClass && '' === trim($currentResponseClass)) {
+            $currentResponseClass = null;
         }
+        $this->currentResponseClass = $currentResponseClass;
 
         return $this;
     }
@@ -81,7 +89,7 @@ class ResponseBuilder
      * 1. Если передан уже готовый объект {@see Response}, он возвращается без изменений.
      * 2. Если установлен конкретный класс ответа (режим строгого типа), создается его экземпляр
      *    и устанавливается тело ответа.
-     * 3. Если класс ответа не задан (пустая строка), вызывается метод {@see makeAuto()}
+     * 3. Если класс ответа не задан (null), вызывается метод {@see determineClass()}
      *    для автоматического определения типа на основе данных.
      *
      * @param mixed $raw Сырые данные, возвращенные контроллером или middleware (массив, строка, объект и т.д.).
@@ -89,16 +97,16 @@ class ResponseBuilder
      * @return Response готовый объект ответа, готовый к отправке клиенту
      *
      * @throws ContainerException        в случае ошибок контейнера
-     * @throws ParameterResolveException в случаен ошибок определения параметров
-     * @throws ServiceNotFoundException  Если требующийся сервис не найден
-     * @throws ConversionException       В случае ошибок приведения типов
+     * @throws ParameterResolveException в случае ошибок определения параметров
+     * @throws ServiceNotFoundException  если требующийся сервис не найден
+     * @throws ConversionException       в случае ошибок приведения типов
      */
     public function make(mixed $raw): Response
     {
         if ($raw instanceof Response) {
             return $raw;
         }
-        $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : $this->determineClass($raw);
+        $class = $this->currentResponseClass ?? $this->defaultResponseClass ?? $this->determineClass($raw);
         $response = $this->buildResponse($class);
         $response->setBody($raw);
 
@@ -113,19 +121,19 @@ class ResponseBuilder
      * чтобы затем наполнить его данными в специфичном формате.
      *
      * Логика выбора класса:
-     * - Если режим авто-определения (пустая строка) → возвращает новый {@see HtmlPageResponse}.
-     * - Если задан конкретный класс → возвращает экземпляр этого класса.
+     *  - Если режим авто-определения (null) - возвращает новый {@see HtmlPageResponse}.
+     *  - Если задан конкретный класс - возвращает экземпляр этого класса.
      *
      * @return Response новый экземпляр ответа без установленного тела
      *
      * @throws ContainerException        в случае ошибок контейнера
-     * @throws ParameterResolveException в случаен ошибок определения параметров
-     * @throws ServiceNotFoundException  Если требующийся сервис не найден
-     * @throws ConversionException       В случае ошибок приведения типов
+     * @throws ParameterResolveException в случае ошибок определения параметров
+     * @throws ServiceNotFoundException  если требующийся сервис не найден
+     * @throws ConversionException       в случае ошибок приведения типов
      */
     public function makeDefault(): Response
     {
-        $class = '' !== $this->defaultResponseClass ? $this->defaultResponseClass : HtmlPageResponse::class;
+        $class = $this->currentResponseClass ?? $this->defaultResponseClass ?? HtmlPageResponse::class;
 
         return $this->buildResponse($class);
     }
@@ -136,9 +144,9 @@ class ResponseBuilder
      * @param class-string $className
      *
      * @throws ContainerException        в случае ошибок контейнера
-     * @throws ParameterResolveException в случаен ошибок определения параметров
-     * @throws ServiceNotFoundException  Если требующийся сервис не найден
-     * @throws ConversionException       В случае ошибок приведения типов
+     * @throws ParameterResolveException в случае ошибок определения параметров
+     * @throws ServiceNotFoundException  если требующийся сервис не найден
+     * @throws ConversionException       в случае ошибок приведения типов
      */
     private function buildResponse(string $className): Response
     {

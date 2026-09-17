@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Application;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Application\ApplicationConfig;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
