@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Http\Response;
 
+use Vasoft\Joke\Exceptions\FileSystemException;
+use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
+use Vasoft\Joke\Support\FileSystem;
 
 /**
  * Базовый класс для бинарных HTTP-ответов.
@@ -30,6 +33,11 @@ abstract class BinaryResponse extends Response
         get => $this->filename;
     }
 
+    public function __construct(CookieCollection $cookies, protected readonly FileSystem $fs)
+    {
+        parent::__construct($cookies);
+    }
+
     /**
      * Загружает содержимое файла в тело ответа.
      *
@@ -42,12 +50,11 @@ abstract class BinaryResponse extends Response
      */
     public function load(string $filename): static
     {
-        if (
-            !file_exists($filename)
-            || ($body = file_get_contents($filename)) === false) {
-            throw new NotFoundException('File not found');
+        try {
+            $this->body = $this->fs->readFile($filename);
+        } catch (FileSystemException $e) {
+            throw new NotFoundException('File not found.', previous: $e);
         }
-        $this->body = $body;
         if ('' === $this->filename) {
             $this->filename = $filename;
         }

@@ -507,9 +507,13 @@ class FileSystem
     public function readFile(string $fileName, $context = null, int $offset = 0, ?int $length = null): string
     {
         $this->validatePath($fileName);
-        $result = file_get_contents($fileName, false, $context, $offset, $length);
+        error_clear_last();
+        $result = @file_get_contents($fileName, false, $context, $offset, $length);
         if (false === $result) {
-            throw new FileSystemException("Failed to read file: '{$fileName}'.");
+            $error = error_get_last();
+            $message = $error['message'] ?? "Failed to read file: \"{$fileName}\".";
+
+            throw new FileSystemException($message);
         }
 
         return $result;
