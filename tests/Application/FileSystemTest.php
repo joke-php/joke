@@ -488,6 +488,21 @@ final class FileSystemTest extends TestCase
         self::assertTrue(true); // no exception
     }
 
+    #[TestDox('validatePath корректно обрабатывает путь состоящий только из точек')]
+    public function testCleanPathDotDotOnly(): void
+    {
+        $this->fileSystem->validatePath('./');
+        self::assertTrue(true); // no exception
+    }
+
+    #[TestDox('validatePath Выбрасывает исключение если передан пустой путь')]
+    public function testCleanPathCanNotBeEmpty(): void
+    {
+        $this->expectExceptionMessageIs('Path cannot be empty.');
+        $this->expectException(FileSystemException::class);
+        $this->fileSystem->validatePath('');
+    }
+
     #[TestDox('validatePath не даёт выйти за basePath через .. от вложенной директории')]
     public function testCleanPathDotDotEscape(): void
     {

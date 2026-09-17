@@ -27,6 +27,8 @@ class FileSystem
     /**
      * Абсолютный базовый путь к корневой директории.
      * Всегда заканчивается разделителем директории.
+     *
+     * @var non-empty-string
      */
     public readonly string $basePath;
 
@@ -40,7 +42,7 @@ class FileSystem
      *
      * Используется для хранения кэша, логов и других генерируемых файлов.
      *
-     * @property string $varPath
+     * @var non-empty-string
      */
     public string $varPath {
         get => $this->basePath . 'var' . \DIRECTORY_SEPARATOR;
@@ -50,7 +52,7 @@ class FileSystem
      *
      * Содержит скрипты инициализации приложения (например, kernel.php).
      *
-     * @property string $bootstrapPath
+     * @var non-empty-string
      */
     public string $bootstrapPath {
         get => $this->basePath . 'bootstrap' . \DIRECTORY_SEPARATOR;
@@ -61,7 +63,7 @@ class FileSystem
      * Используется для хранения скомпилированных шаблонов, кэша конфигурации
      * и других временных данных для ускорения работы приложения.
      *
-     * @property string $cachePath
+     * @var non-empty-string
      */
     public string $cachePath {
         get => $this->varPath . 'cache' . \DIRECTORY_SEPARATOR;
@@ -71,7 +73,7 @@ class FileSystem
      *
      * Предназначена для хранения файлов журналов событий и ошибок приложения.
      *
-     * @property string $logPath
+     * @var non-empty-string
      */
     public string $logPath {
         get => $this->varPath . 'log' . \DIRECTORY_SEPARATOR;
@@ -83,7 +85,7 @@ class FileSystem
      * а также публичные ресурсы: CSS, JavaScript, изображения и другие файлы,
      * доступные напрямую из браузера.
      *
-     * @property string $publicPath
+     * @var non-empty-string
      */
     public string $publicPath {
         get => $this->basePath . 'public' . \DIRECTORY_SEPARATOR;
@@ -273,6 +275,14 @@ class FileSystem
      */
     public function validatePath(string $path): void
     {
+        $path = trim($path);
+        if ('' === trim($path)) {
+            throw new FileSystemException('Path cannot be empty.');
+        }
+
+        if (!$this->isAbsolute($path)) {
+            $path = $this->basePath . $path;
+        }
         $normalized = $this->cleanPath($path);
         $base = rtrim($this->basePath, \DIRECTORY_SEPARATOR);
         if (!str_starts_with($normalized, $base)) {
@@ -498,7 +508,7 @@ class FileSystem
      * @param non-empty-string $fileName абсолютный путь к файлу
      * @param null|resource    $context  контекст потока
      * @param int              $offset   позиция начала чтения
-     * @param null|int         $length   максимальное количество байт для чтения
+     * @param null|int<0, max> $length   максимальное количество байт для чтения
      *
      * @return string содержимое файла
      *
@@ -525,7 +535,7 @@ class FileSystem
      * Разрешает конструкции "." и "..", унифицирует разделители.
      * Используется для логической валидации путей в {@see validatePath()}.
      *
-     * @param non-empty-string $path путь для очистки
+     * @param non-empty-string $path абсолюный путь для очистки
      *
      * @return non-empty-string нормализованный путь
      */
@@ -535,7 +545,6 @@ class FileSystem
 
         $parts = explode('/', $path);
         $absolutes = [];
-        $isAbsolute = str_starts_with($path, '/') || ($this->isWindows && preg_match('~^[A-Z]:(\\\|/)~i', $path));
 
         foreach ($parts as $part) {
             if ('' === $part || '.' === $part) {
@@ -552,10 +561,7 @@ class FileSystem
         }
 
         $result = implode(\DIRECTORY_SEPARATOR, $absolutes);
-        if ($isAbsolute) {
-            $result = \DIRECTORY_SEPARATOR . $result;
-        }
 
-        return $result;
+        return \DIRECTORY_SEPARATOR . $result;
     }
 }
