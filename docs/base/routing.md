@@ -193,16 +193,48 @@ $route = $router->route('profile');
 
 ## Группировка маршрутов
 
-Маршруты можно объединять в группы, чтобы применять к ним общие настройки или middleware:
+Маршруты можно объединять в группы, чтобы применять к ним общие настройки или middleware. 
+
+В некоторых ситуациях (например определение типа ответа по умолчанию по группе) требуется выделить одну из групп в качестве основной. По умолчанию основной группой является та, в которую маршрут был добавлен первой. Основную группу можно (и **рекомендуется**) задавать явно при помощи метода `Router::setDefaultGroup`. 
 
 ```php
+use Vasoft\Joke\Routing\Router;
+
+/**
+ * @var Router $router
+ */
+
 $router->get('/hello', fn() => 'hi', 'hello')
     ->addGroup('filtered')
-    ->addGroup('second');
+    ->addGroup('second')
+    ->setDefaultGroup('second');
 ```
 
 Маршруты, подключаемые из файла веб-маршрутов (`routes/web.php`), автоматически добавляются в группу `web`.
 Фреймворк включает enum со стандартными группами: `Vasoft\Joke\Routing\StdGroup`.
+
+## Тип ответа по умолчанию
+
+Для каждого маршрута можно установить свой тип ответа по умолчанию. Эта настройка имеет больший приоритет чем установка типа ответа для группы маршрутов и приложения: 
+
+```php
+<?php
+// routes/web.php
+
+use Vasoft\Joke\Routing\Router;
+use App\AdminController;
+use App\CustomJsonResponse;
+
+/**
+ * @var Router $router
+ */
+ $router->get('/api/{props}', AdminController::class)
+    ->addGroup('api')
+    ->setDefaultGroup('api');
+    ->setDefaultResponseClass(CustomJsonResponse::class);
+
+```
+
 
 ## Middleware на уровне маршрута
 

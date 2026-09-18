@@ -7,6 +7,7 @@ namespace Vasoft\Joke\Application;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Http\Response\HtmlResponse;
+use Vasoft\Joke\Http\Response\Response;
 
 class ApplicationConfig extends AbstractConfig
 {
@@ -15,6 +16,12 @@ class ApplicationConfig extends AbstractConfig
      */
     private ?string $responseClass = null;
     private string $fileRoues = 'routes/web.php';
+    /**
+     * Типы ответов по умолчанию для групп
+     *
+     * @var array<string,null|class-string<Response>>
+     */
+    private array $groupResponseClass = [];
 
     /**
      * Устанавливает путь к файлу роутов абсолютный или относительно корня проекта.
@@ -24,6 +31,8 @@ class ApplicationConfig extends AbstractConfig
      * @return $this
      *
      * @throws ConfigException
+     *
+     * @todo Переименовать опечаетка
      */
     public function setFileRoues(string $fileRoues): static
     {
@@ -52,11 +61,13 @@ class ApplicationConfig extends AbstractConfig
     /**
      * Устанавливает тип ответа по умолчанию для всего приложения.
      *
+     * Может быть переопределено на уровне группы или на уровне маршрута.
+     *
      * По умолчанию включено авто-определение типа (массив -> JsonResponse, остальное -> HtmlResponse).
      * Для включения строгого режима передайте имя класса (например, JsonResponse::class).
      * Если передать null - режим автоопределения
      *
-     * @param null|class-string $responseClass Тип ответа по умолчанию
+     * @param null|class-string<Response> $responseClass Тип ответа по умолчанию
      *
      * @return $this
      *
@@ -68,5 +79,44 @@ class ApplicationConfig extends AbstractConfig
         $this->responseClass = $responseClass;
 
         return $this;
+    }
+
+    /**
+     * Устанавливает тип ответа по умолчанию для группы маршрутов.
+     *
+     *  Может быть переопределено на уровне маршрута.
+     *
+     * По умолчанию включено авто-определение типа (массив -> JsonResponse, остальное -> HtmlResponse).
+     * Для включения строгого режима передайте имя класса (например, JsonResponse::class).
+     * Если передать null - режим автоопределения
+     *
+     * @param non-empty-string            $groupName     Имя группы
+     * @param null|class-string<Response> $responseClass Тип ответа по умолчанию
+     *
+     * @return $this
+     *
+     * @throws ConfigException
+     */
+    public function setGroupResponseClass(string $groupName, ?string $responseClass): static
+    {
+        $this->guard();
+        if (null !== $responseClass && '' === trim($responseClass)) {
+            $responseClass = null;
+        }
+        $this->groupResponseClass[$groupName] = $responseClass;
+
+        return $this;
+    }
+
+    /**
+     * Возвращает класс ответа по умолчанию для группы или null - если определение делегируется на другой уровень.
+     *
+     * @param non-empty-string $groupName Имя группы
+     *
+     * @return null|class-string<Response>
+     */
+    public function getGroupResponseClass(string $groupName): ?string
+    {
+        return $this->groupResponseClass[$groupName] ?? null;
     }
 }

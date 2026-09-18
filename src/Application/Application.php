@@ -273,7 +273,17 @@ class Application
         if (null === $route) {
             throw new NotFoundException('Route not found');
         }
+        /** @var ResponseBuilder $responseBuilder */
         $responseBuilder = $this->serviceContainer->get(ResponseBuilder::class);
+
+        if (!empty($route->defaultResponseClass)) {
+            $responseBuilder->setCurrentResponseClass($route->defaultResponseClass);
+        } elseif (!empty($route->defaultGroup)) {
+            /** @var ApplicationConfig $config */
+            $config = $this->serviceContainer->get(ApplicationConfig::class);
+            $responseClass = $config->getGroupResponseClass($route->defaultGroup);
+            $responseBuilder->setCurrentResponseClass($responseClass);
+        }
 
         $next = static fn() => $responseBuilder->make($route->run($request));
         $middlewareCollection = $this->routeMiddlewares->withMiddlewares($route->getMiddlewares());
