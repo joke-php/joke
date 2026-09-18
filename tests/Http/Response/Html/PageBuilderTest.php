@@ -115,7 +115,7 @@ final class PageBuilderTest extends TestCase
             $builder->build(),
         );
     }
-
+    #[TestDox('Добавляет js согласно указанному расположению без дублирования')]
     public function testScripts(): void
     {
         self::$config->setTagSeparator("\n");
@@ -123,6 +123,7 @@ final class PageBuilderTest extends TestCase
         $attributes = new AttributeCollection()->flag('integrity', true);
         $builder->js->addToBody('https://site.ru/s1.js', 50, $attributes);
         $builder->js->addToBody('https://site.ru/s2.js', 1);
+        $builder->js->addToBody('https://site.ru/s3.js');
         $builder->js->addToBody('https://site.ru/s3.js');
         $builder->js->addToHead('https://site.ru/s3.js');
         $builder->js->addToHead('https://site.ru/s4.js');
@@ -138,6 +139,62 @@ final class PageBuilderTest extends TestCase
                 <body>
                 <script src="https://site.ru/s2.js"></script>
                 <script integrity src="https://site.ru/s1.js"></script>
+                </body>
+                </html>
+                HTML,
+            $builder->build(),
+        );
+    }
+    #[TestDox('Добавляет css согласно указанному расположению без дублирования')]
+    public function testCss(): void
+    {
+        self::$config->setTagSeparator("\n");
+        $builder = new PageBuilder(self::$config, self::$manager);
+        $attributes = new AttributeCollection()->set('media', 'screen and (max-width: 600px)');
+        $builder->css->addToBody('https://site.ru/s1.css', 50, $attributes);
+        $builder->css->addToBody('https://site.ru/s2.css', 1);
+        $builder->css->addToBody('https://site.ru/s3.css');
+        $builder->css->addToHead('https://site.ru/s3.css');
+        $builder->css->addToHead('https://site.ru/s3.css');
+        $builder->css->addToHead('https://site.ru/s4.css');
+        $builder->css->addToBody('https://site.ru/s4.css');
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                <link rel="stylesheet" href="https://site.ru/s3.css"/>
+                <link rel="stylesheet" href="https://site.ru/s4.css"/>
+                </head>
+                <body>
+                <link rel="stylesheet" href="https://site.ru/s2.css"/>
+                <link media="screen and (max-width: 600px)" rel="stylesheet" href="https://site.ru/s1.css"/>
+                </body>
+                </html>
+                HTML,
+            $builder->build(),
+        );
+    }
+    #[TestDox('Добавляет строки без дублирования')]
+    public function testStringToHead(): void
+    {
+        self::$config->setTagSeparator("\n");
+        $builder = new PageBuilder(self::$config, self::$manager);
+        $builder->headString->add('<script>const test=1;</script>');
+        $builder->headString->add('<script>const test=1;</script>');
+        $builder->headString->add('<style>body{color:red}</style>');
+        $builder->bottomString->add('<script>const test2=1;</script>');
+        $builder->bottomString->add('<script>const test2=1;</script>');
+        $builder->bottomString->add('<style>body{border:1px solid blue;}</style>');
+        self::assertSame(
+            <<<'HTML'
+                <html lang="ru">
+                <head>
+                <meta charset="UTF-8">
+                <script>const test=1;</script><style>body{color:red}</style>
+                </head>
+                <body>
+                <script>const test2=1;</script><style>body{border:1px solid blue;}</style>
                 </body>
                 </html>
                 HTML,
