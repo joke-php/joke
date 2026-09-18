@@ -83,7 +83,7 @@ use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Config\Environment;
 
 return new ApplicationConfig()
-    ->setFileRoues('routes/custom-web.php');
+    ->setFileRoutes('routes/custom-web.php');
 ```
 
 По умолчанию путь `routes/web.php`.
@@ -249,3 +249,10 @@ class MyRoute implements RouteInterface {
 // ....
 }
 ```
+
+## 23 ApplicationConfig::*FileRoues исправлена опечатка
+
+Следует заменить:
+- ApplicationConfig::setFileRoues на ApplicationConfig::setFileRoutes
+- ApplicationConfig::getFileRoues на ApplicationConfig::getFileRoutes
+

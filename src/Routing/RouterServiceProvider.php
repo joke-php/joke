@@ -27,7 +27,7 @@ class RouterServiceProvider extends AbstractProvider
         $pathNormalize = $this->serviceContainer->get(FileSystem::class);
         $router = $this->serviceContainer->getRouter();
         $router->addAutoGroups([StdGroup::WEB->value]);
-        $file = $pathNormalize->normalizeFile($this->applicationConfig->getFileRoues());
+        $file = $pathNormalize->normalizeFile($this->applicationConfig->getFileRoutes());
         $pathNormalize->includeFile($file, ['router' => $router]);
         $router->cleanAutoGroups();
     }
