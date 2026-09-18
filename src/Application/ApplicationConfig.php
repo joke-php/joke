@@ -15,7 +15,7 @@ class ApplicationConfig extends AbstractConfig
      * @var null|class-string Тип ответа по умолчанию
      */
     private ?string $responseClass = null;
-    private string $fileRoues = 'routes/web.php';
+    private string $fileRoutes = 'routes/web.php';
     /**
      * Типы ответов по умолчанию для групп
      *
@@ -24,30 +24,28 @@ class ApplicationConfig extends AbstractConfig
     private array $groupResponseClass = [];
 
     /**
-     * Устанавливает путь к файлу роутов абсолютный или относительно корня проекта.
+     * Устанавливает путь к файлу маршрутов абсолютный или относительно корня проекта.
      *
-     * @param string $fileRoues путь к файлу роутов
+     * @param string $fileRoutes путь к файлу маршрутов
      *
      * @return $this
      *
      * @throws ConfigException
-     *
-     * @todo Переименовать опечаетка
      */
-    public function setFileRoues(string $fileRoues): static
+    public function setFileRoutes(string $fileRoutes): static
     {
         $this->guard();
-        $this->fileRoues = $fileRoues;
+        $this->fileRoutes = $fileRoutes;
 
         return $this;
     }
 
     /**
-     * Возвращает путь к файлу роутов.
+     * Возвращает путь к файлу маршрутов.
      */
-    public function getFileRoues(): string
+    public function getFileRoutes(): string
     {
-        return $this->fileRoues;
+        return $this->fileRoutes;
     }
 
     /**

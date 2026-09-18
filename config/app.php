@@ -8,5 +8,5 @@ use Vasoft\Joke\Config\Environment;
 use Vasoft\Joke\Http\Response\JsonResponse;
 
 return new ApplicationConfig()
-    ->setFileRoues('routes/web.php')
+    ->setFileRoutes('routes/web.php')
     ->setGroupResponseClass('json', JsonResponse::class);

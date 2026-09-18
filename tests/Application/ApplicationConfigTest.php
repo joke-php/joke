@@ -31,7 +31,7 @@ final class ApplicationConfigTest extends TestCase
 
     public static function provideFrozenCases(): iterable
     {
-        yield ['setFileRoues', 'file.php'];
+        yield ['setFileRoutes', 'file.php'];
         yield ['setResponseClass', null];
     }
 
@@ -45,7 +45,7 @@ final class ApplicationConfigTest extends TestCase
 
     public static function provideSetAndGetCases(): iterable
     {
-        yield ['setFileRoues', 'getFileRoues', 'file.php'];
+        yield ['setFileRoutes', 'getFileRoutes', 'file.php'];
         yield ['setResponseClass', 'getResponseClass', HtmlResponse::class];
     }
 
