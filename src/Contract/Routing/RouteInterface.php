@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Contract\Routing;
 
 use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
+use Vasoft\Joke\Exceptions\JokeException;
+use Vasoft\Joke\Http\Response\Response;
 use Vasoft\Joke\Middleware\MiddlewareDto;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
@@ -45,6 +47,34 @@ interface RouteInterface
     public HttpMethod $method {
         get;
     }
+    /**
+     * Тип ответа по умолчанию для маршрута.
+     * Имеет больший приоритет чем настройки группы и приложения.
+     *
+     * Если передан null или пустая строка - используется настройка уровня группы, приложения или автоопределение
+     *
+     * @var null|class-string<Response>
+     */
+    public ?string $defaultResponseClass {
+        get;
+    }
+    /**
+     * Возвращает группу по умолчанию для маршрута.
+     *
+     * @var string имя группы или пустая строка если группа не задана или не существует
+     */
+    public string $defaultGroup {
+        get;
+    }
+
+    /**
+     * Устанавливает для маршрута тип ответа по умолчанию.
+     *
+     * Если передан null или пустая строка - используется настройка уровня группы, приложения или автоопределение
+     *
+     * @param null|class-string<Response> $class
+     */
+    public function setDefaultResponseClass(?string $class): static;
 
     /**
      * Конструктор маршрута.
@@ -139,6 +169,17 @@ interface RouteInterface
      * @return $this
      */
     public function mergeGroup(array $groups): static;
+
+    /**
+     * Устанавливает основную группу маршрута.
+     *
+     * @param string $groupName Имя группы, если передана пустая строка - выбирается автоматически
+     *
+     * @return $this
+     *
+     * @throws JokeException Если группа еще не добавлена
+     */
+    public function setDefaultGroup(string $groupName): static;
 
     /**
      * Возвращает список middleware привязанных к маршруту.

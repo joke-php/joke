@@ -224,3 +224,28 @@ HtmlPageResponse::getBody - возвращает только контент с�
 ## 20 FileSystem::validatePath выбрасывает исключение если передан пустой путь
 ## 21 Удален метод ResponseBuilder::setDefaultResponseBuilder
 Вместо него следует использовать ResponseBuilder::setCurrentResponseClass()
+## 22 Изменены RouteInterface и Route
+Необходимо добавить в свои реализации
+```php
+class MyRoute implements RouteInterface {
+// ....
+    public string $defaultGroup = '' {
+        get {
+            // ...
+            return $this->defaultGroup;
+        }
+    }
+
+    public protected(set) ?string $defaultResponseClass {
+        get;
+    }
+    public function setDefaultResponseClass(?string $class): static{
+    // ...
+    }
+    public function setDefaultGroup(string $groupName): static {
+        // ...
+        return $this;
+    }
+// ....
+}
+```

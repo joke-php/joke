@@ -8,6 +8,7 @@ use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
 use Vasoft\Joke\Contract\Routing\RouteInterface;
 use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Container\Exceptions\ParameterResolveException;
+use Vasoft\Joke\Http\Response\Response;
 use Vasoft\Joke\Middleware\MiddlewareCollection;
 use Vasoft\Joke\Middleware\MiddlewareDto;
 use Vasoft\Joke\Http\HttpMethod;
@@ -49,6 +50,21 @@ class Route implements RouteInterface
         'int' => '\d+',
     ];
     /**
+     * Содержит имя основной группы маршрута, если она не задана явно выбирается первая из списка.
+     *
+     * @var string Имя основной группы или пустая строка если у маршрута нет групп
+     */
+    public protected(set) string $defaultGroup = '' {
+        get {
+            if ('' !== $this->defaultGroup) {
+                return $this->defaultGroup;
+            }
+
+            return (string) (array_key_first($this->groups) ?? '');
+        }
+    }
+
+    /**
      * Скомпилированный регулярный шаблон URI.
      *
      * Лениво компилируется при первом обращении.
@@ -62,6 +78,15 @@ class Route implements RouteInterface
     public private(set) HttpMethod $method {
         get => $this->method;
     }
+    /**
+     * Тип ответа по умолчанию для маршрута.
+     * Имеет больший приоритет чем настройки группы и приложения.
+     *
+     * Если передан null или пустая строка - используется настройка уровня группы, приложения или автоопределение
+     *
+     * @var null|class-string<Response>
+     */
+    public protected(set) ?string $defaultResponseClass = null;
 
     /**
      * Конструктор маршрута.
@@ -83,6 +108,23 @@ class Route implements RouteInterface
     ) {
         $this->method = $method;
         $this->middlewares = new MiddlewareCollection();
+    }
+
+    /**
+     * Устанавливает для маршрута тип ответа по умолчанию.
+     *
+     * Если передан null или пустая строка - используется настройка уровня группы, приложения или автоопределение
+     *
+     * @param null|class-string<Response> $class
+     */
+    public function setDefaultResponseClass(?string $class): static
+    {
+        if (null !== $class && '' === trim($class)) {
+            $class = null;
+        }
+        $this->defaultResponseClass = $class;
+
+        return $this;
     }
 
     /**
@@ -283,5 +325,15 @@ class Route implements RouteInterface
     public function getMiddlewares(): array
     {
         return $this->middlewares->getMiddlewares();
+    }
+
+    public function setDefaultGroup(string $groupName): static
+    {
+        if (!array_key_exists($groupName, $this->groups)) {
+            throw new JokeException(sprintf('Group "%s" does not exist.', $groupName));
+        }
+        $this->defaultGroup = $groupName;
+
+        return $this;
     }
 }

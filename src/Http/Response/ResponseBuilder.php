@@ -69,8 +69,6 @@ class ResponseBuilder
      * Устанавливает текущий класс ответа для активного контекста (маршрут/группа).
      *
      * @param null|class-string<Response> $currentResponseClass
-     *
-     * @return ResponseBuilder
      */
     public function setCurrentResponseClass(?string $currentResponseClass): static
     {

@@ -101,6 +101,68 @@ return new ApplicationConfig()
 Эта архитектура позволяет писать лаконичные контроллеры для смешанных приложений (где есть и API, и страницы) и
 переключаться в строгий режим для микросервисов одного типа.
 
+### Настройка типа ответа для группы маршрутов и маршрута
+
+Переопределить установленный для всего приложения тип ответа можно на уровне группы маршрутов и отдельного маршрута. При
+этом тип ответа установленный для отдельного маршрута имеет самый высокий приоритет.
+
+Для установки типа ответа для группы необходимо выполнить настройку в конфигурации приложения:
+
+```php
+<?php
+// config/app.php
+
+declare(strict_types=1);
+
+use Vasoft\Joke\Application\ApplicationConfig;
+use \Vasoft\Joke\Http\Response\HtmlPageResponse;
+use \Vasoft\Joke\Http\Response\HtmlResponse;
+
+return new ApplicationConfig()
+    ->setResponseClass(JsonResponse::class)
+    ->setGroupResponseClass('admin', HtmlPageResponse::class)
+    ->setGroupResponseClass('ajax', HtmlResponse::class);
+```
+
+Если маршрут принадлежит к нескольким группам с настроенными типами ответа, то тип ответа будет согласно основной группе
+маршрута. Если основная группа не задана, то первой заданной группе.
+> Рекомендую всегда явно указывать основную группу маршрута
+
+```php
+<?php
+// routes/web.php
+
+use Vasoft\Joke\Routing\Router;
+use App\AdminController;
+
+/**
+ * @var Router $router
+ */
+ $router->get('/admin/{prop}', AdminController::class)
+    ->addGroup('admin')
+    ->addGroup('internal')
+    ->setDefaultGroup('admin');
+
+```
+
+Так же в файле маршрутов производится и настройка типа ответа по умолчанию для конкретного маршруту:
+
+```php
+<?php
+// routes/web.php
+
+use Vasoft\Joke\Routing\Router;
+use App\AdminController;
+use App\DocumentResponse;
+
+/**
+ * @var Router $router
+ */
+ $router->get('/docs/{props}', AdminController::class)
+    ->setDefaultResponseClass(DocumentResponse::class);
+
+```
+
 ## Регистрация middleware
 
 Вы можете расширять поведение приложения через два метода:

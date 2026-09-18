@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Tests\Application;
 
 use phpmock\phpunit\PHPMock;
 use Vasoft\Joke\Application\ApplicationConfig;
+use Vasoft\Joke\Http\Response\HtmlResponse;
 use Vasoft\Joke\Middleware\StdMiddleware;
 use Vasoft\Joke\Support\FileSystem;
 use Vasoft\Joke\Config\EnvironmentLoader;
@@ -503,5 +504,61 @@ final class ApplicationTest extends TestCase
         $app->handle($request);
         ob_get_clean();
         self::assertTrue($statusHeaderExists);
+    }
+
+    public function testDefaultResponseTypeFromRoute(): void
+    {
+        $container = new ServiceContainer();
+        /** @var Router $router */
+        $router = new Router($container);
+        $container->setRouter($router);
+        $router->get('/test/', static fn() => 'Ok')
+            ->addGroup('json')
+            ->setDefaultGroup('json')
+            ->setDefaultResponseClass(HtmlResponse::class);
+        $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
+
+        $app = new Application(dirname(__DIR__, 2), $container);
+        ob_start();
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/test/']);
+        $app->handle($request);
+        $output = ob_get_clean();
+        self::assertSame('Ok', $output);
+    }
+
+    public function testDefaultResponseTypeFromGroup(): void
+    {
+        $container = new ServiceContainer();
+        /** @var Router $router */
+        $router = new Router($container);
+        $container->setRouter($router);
+        $router->get('/test/', static fn() => ['Ok' => 'a'])
+            ->addGroup('json')
+            ->setDefaultGroup('json');
+        $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
+
+        $app = new Application(dirname(__DIR__, 2), $container);
+        ob_start();
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/test/']);
+        $app->handle($request);
+        $output = ob_get_clean();
+        self::assertSame('{"Ok":"a"}', $output);
+    }
+
+    public function testDefaultResponseTypeAuto(): void
+    {
+        $container = new ServiceContainer();
+        /** @var Router $router */
+        $router = new Router($container);
+        $container->setRouter($router);
+        $router->get('/test/', static fn() => ['Ok' => 'a']);
+        $container->registerSingleton(CsrfConfig::class, CsrfConfig::class);
+
+        $app = new Application(dirname(__DIR__, 2), $container);
+        ob_start();
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/test/']);
+        $app->handle($request);
+        $output = ob_get_clean();
+        self::assertSame('{"Ok":"a"}', $output);
     }
 }

@@ -5,8 +5,11 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Routing;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
+use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
+use Vasoft\Joke\Http\Response\JsonResponse;
 use Vasoft\Joke\Routing\Route;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -129,5 +132,48 @@ final class RouteTest extends TestCase
         self::assertSame(['test1'], $route->getGroups());
         $route->mergeGroup(['test1', 'test2']);
         self::assertSame(['test1', 'test2'], $route->getGroups());
+    }
+
+    #[TestDox('Передача пустой строки в качестве класса ответа по умолчанию эквивалентно null')]
+    public function testSetDefaultResponseClassEmptyStringToNull(): void
+    {
+        $route = new Route(self::$serviceContainer, '/invoke/{prop}', HttpMethod::GET, InvokeController::class);
+        $route->setDefaultResponseClass(JsonResponse::class);
+        self::assertSame(JsonResponse::class, $route->defaultResponseClass);
+        $route->setDefaultResponseClass(' ');
+        self::assertNull($route->defaultResponseClass);
+    }
+
+    #[TestDox('setDefaultGroup устанавливает основную группу маршрута')]
+    public function testSetDefaultGroup(): void
+    {
+        $route = new Route(self::$serviceContainer, '/invoke/{prop}', HttpMethod::GET, InvokeController::class);
+        $route
+            ->addGroup('test1')
+            ->addGroup('test2')
+            ->addGroup('test3')
+            ->setDefaultGroup('test2');
+        self::assertSame('test2', $route->defaultGroup);
+    }
+
+    #[TestDox('setDefaultGroup если группа еще не добавлена выбрасывается исключение')]
+    public function testSetDefaultGroupExceptionIfNotDefinedGroup(): void
+    {
+        $route = new Route(self::$serviceContainer, '/invoke/{prop}', HttpMethod::GET, InvokeController::class);
+        $route->addGroup('test1');
+        self::expectException(JokeException::class);
+        self::expectExceptionMessageIs('Group "test2" does not exist.');
+        $route->setDefaultGroup('test2');
+    }
+
+    #[TestDox('Если группа не установлена - возвращается первая заданная')]
+    public function testDefaultGroup(): void
+    {
+        $route = new Route(self::$serviceContainer, '/invoke/{prop}', HttpMethod::GET, InvokeController::class);
+        $route
+            ->addGroup('test1')
+            ->addGroup('test2')
+            ->addGroup('test3');
+        self::assertSame('test1', $route->defaultGroup);
     }
 }
