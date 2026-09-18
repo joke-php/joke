@@ -145,14 +145,11 @@ class HtmlImporter
     /**
      * Переносит атрибуты из DOM-узла в AttributeCollection.
      *
-     * @param null|\DOMNamedNodeMap $attributes карта атрибутов DOM-узла
-     * @param AttributeCollection   $collection коллекция для заполнения
+     * @param \DOMNamedNodeMap    $attributes карта атрибутов DOM-узла
+     * @param AttributeCollection $collection коллекция для заполнения
      */
-    private static function prepareAttributes(?\DOMNamedNodeMap $attributes, AttributeCollection $collection): void
+    private static function prepareAttributes(\DOMNamedNodeMap $attributes, AttributeCollection $collection): void
     {
-        if (!$attributes) {
-            return;
-        }
         foreach ($attributes as $attr) {
             if ($attr instanceof \DOMAttr) {
                 $collection->set($attr->name, $attr->value);
