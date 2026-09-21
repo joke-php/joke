@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Application;
 
+use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -68,6 +69,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             CsrfConfig::class,
             CorsConfig::class,
             PageBuilderConfig::class,
+            AuthConfig::class,
         ];
     }
 
@@ -79,6 +81,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             CsrfConfig::class => new CsrfConfig(),
             CorsConfig::class => new CorsConfig(),
             PageBuilderConfig::class => new PageBuilderConfig(),
+            AuthConfig::class => new AuthConfig(),
             default => throw new UnknownConfigException($configClass),
         };
     }
