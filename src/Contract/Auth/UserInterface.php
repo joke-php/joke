@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Contract\Auth;
 
+use Vasoft\Joke\Collections\PropsCollection;
+
 /**
  * Интерфейс пользователя системы аутентификации/авторизации.
  */
@@ -29,17 +31,16 @@ interface UserInterface
     }
 
     /**
-     * Проверяет наличие определенного права у пользователя.
+     * Дополнительные свойства и данные пользователя.
      *
-     * Права имеют формат "module:right", например:
-     * - "users:view"
-     * - "posts:edit"
-     * - "admin:delete"
+     * Коллекция произвольных данных, связанных с пользователем (имя, email,
+     * настройки интерфейса, метаданные профиля и т.д.).
      *
-     * @param string $module Модуль системы (например, "users", "posts")
-     * @param string $right  Право действия (например, "view", "edit", "delete")
-     *
-     * @return bool true если право предоставлено, false иначе
+     * Использование коллекции вместо жесткой структуры позволяет:
+     * - Расширять набор данных без изменения интерфейса UserInterface.
+     * - Единообразно работать с данными в шаблонах и контроллерах.
      */
-    public function can(string $module, string $right): bool;
+    public PropsCollection $data {
+        get;
+    }
 }
