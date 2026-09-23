@@ -7,7 +7,6 @@ namespace Vasoft\Joke\Tests\Auth;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
-use Vasoft\Joke\Application\KernelConfig;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Auth\Authenticator\JwtAuthenticator;

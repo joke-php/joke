@@ -115,6 +115,7 @@ final class PageBuilderTest extends TestCase
             $builder->build(),
         );
     }
+
     #[TestDox('Добавляет js согласно указанному расположению без дублирования')]
     public function testScripts(): void
     {
@@ -145,6 +146,7 @@ final class PageBuilderTest extends TestCase
             $builder->build(),
         );
     }
+
     #[TestDox('Добавляет css согласно указанному расположению без дублирования')]
     public function testCss(): void
     {
@@ -175,6 +177,7 @@ final class PageBuilderTest extends TestCase
             $builder->build(),
         );
     }
+
     #[TestDox('Добавляет строки без дублирования')]
     public function testStringToHead(): void
     {
