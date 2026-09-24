@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vasoft\Joke\Auth\Authenticator;
+namespace Vasoft\Joke\Auth\Session;
 
 use Vasoft\Joke\Auth\User;
 use Vasoft\Joke\Contract\Auth\AuthenticatorInterface;

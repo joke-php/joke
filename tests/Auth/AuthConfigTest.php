@@ -9,8 +9,8 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Auth\AuthConfig;
-use Vasoft\Joke\Auth\Authenticator\JwtAuthenticator;
-use Vasoft\Joke\Auth\Authenticator\SessionAuthenticator;
+use Vasoft\Joke\Auth\Jwt\JwtAuthenticator;
+use Vasoft\Joke\Auth\Session\SessionAuthenticator;
 use Vasoft\Joke\Auth\Rights\ConfigRightsSource;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 

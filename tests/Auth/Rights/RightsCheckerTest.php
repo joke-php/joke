@@ -57,12 +57,12 @@ final class RightsCheckerTest extends TestCase
     #[TestDox('По порядку обходит все источники')]
     public function testCheckAllSources(UserInterface $user): void
     {
+        SimpleTestRightsSource::$index = 0;
         $this->config->addRightsSource(new SimpleTestRightsSource($this)->setRights(['main:read']));
         $this->config->addRightsSource(new SimpleTestRightsSource($this)->setRights(['mail:read']));
         $this->config->addRightsSource(new SimpleTestRightsSource($this)->setRights(['forum:read']));
         $this->queryRights = [];
         $this->initializedSources = [];
-        SimpleTestRightsSource::$index = 0;
         $checker = new RightsChecker($this->config, $this->container);
         $checker->can($user, 'main', 'write');
         $id = $user->id ?? 'anonymous';
@@ -140,8 +140,8 @@ final class RightsCheckerTest extends TestCase
 
     public static function provideUserHasNoRightsIdNotSourcesCases(): iterable
     {
-        yield [new User(123)];
-        yield [new User(null)];
+        yield 'authorized' => [new User(123)];
+        yield 'anonymous' => [new User(null)];
     }
 
     #[DataProvider('provideExceptionIfWrongSourceTypeCases')]
