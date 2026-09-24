@@ -13,6 +13,7 @@ use Vasoft\Joke\Auth\Jwt\JwtAuthenticator;
 use Vasoft\Joke\Auth\Session\SessionAuthenticator;
 use Vasoft\Joke\Auth\Rights\ConfigRightsSource;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
+use Vasoft\Joke\Http\HttpRequest;
 
 /**
  * @internal
@@ -26,8 +27,9 @@ final class AuthConfigTest extends TestCase
     #[TestDox('Конфигурация принимает разные типы описания аутентификатора')]
     public function testConfigureAuthenticator(): void
     {
-        $object = new SessionAuthenticator();
-        $function = static fn(): SessionAuthenticator => new SessionAuthenticator();
+        $request = new HttpRequest();
+        $object = new SessionAuthenticator($request);
+        $function = static fn(): SessionAuthenticator => new SessionAuthenticator($request);
         $config = new AuthConfig();
         $config
             ->addAuthenticator($object)
