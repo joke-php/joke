@@ -7,14 +7,14 @@ namespace Vasoft\Joke\Tests\Auth\Authenticator;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Auth\Authenticator\SessionAuthenticator;
+use Vasoft\Joke\Auth\Session\SessionAuthenticator;
 use Vasoft\Joke\Contract\Auth\UserInterface;
 use Vasoft\Joke\Http\HttpRequest;
 
 /**
  * @internal
  *
- * @coversDefaultClass \Vasoft\Joke\Auth\Authenticator\SessionAuthenticator
+ * @coversDefaultClass \Vasoft\Joke\Auth\Session\SessionAuthenticator
  */
 #[TestDox('SessionAuthenticator аутентификатор на основе сессий')]
 #[CoversClass(SessionAuthenticator::class)]
