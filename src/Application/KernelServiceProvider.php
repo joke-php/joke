@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Application;
 
 use Vasoft\Joke\Auth\AuthConfig;
+use Vasoft\Joke\Auth\AuthService;
+use Vasoft\Joke\Auth\Rights\RightsChecker;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -36,6 +38,8 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
         $this->serviceContainer->registerSingleton('middleware.route', MiddlewareCollection::class);
         $this->serviceContainer->registerSingleton(ResponseBuilder::class, ResponseBuilder::class);
         $this->serviceContainer->registerSingleton(CsrfTokenManager::class, CsrfTokenManager::class);
+        $this->serviceContainer->registerSingleton(AuthService::class, AuthService::class);
+        $this->serviceContainer->registerSingleton(RightsChecker::class, RightsChecker::class);
     }
 
     public function boot(): void
@@ -58,6 +62,8 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             'middleware.global',
             'middleware.route',
             ResponseBuilder::class,
+            AuthService::class,
+            RightsChecker::class,
         ];
     }
 
