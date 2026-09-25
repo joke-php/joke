@@ -13,10 +13,6 @@ namespace Vasoft\Joke\Contract\Auth;
  * В отличие от Authenticator, который определяет "как аутентифицировать",
  * UserProvider знает "где хранятся данные пользователей".
  *
- * Один провайдер может использоваться несколькими аутентификаторами.
- * Например, SessionAuthenticator и JwtAuthenticator могут использовать
- * один и тот же DatabaseUserProvider.
- *
  * @see AuthenticatorInterface
  */
 interface UserProviderInterface
@@ -33,9 +29,24 @@ interface UserProviderInterface
      * а НЕ выбрасывать исключение. Это позволяет аутентификаторам
      * корректно обрабатывать случай "пользователь не существует".
      *
-     * @param string $identifier Уникальный идентификатор пользователя
+     * @param string $id Уникальный идентификатор пользователя
      *
      * @return null|UserInterface Объект пользователя или null если не найден
      */
-    public function loadUserByIdentifier(string $identifier): ?UserInterface;
+    public function loadUserById(string $id): ?UserInterface;
+
+    /**
+     * Обогащает данные пользователя информацией из источника.
+     *
+     * Метод получает объект пользователя (например, созданный аутентификатором
+     * на основе JWT payload) и дополняет его недостающими данными
+     * (ролями, профилем, настройками) или проверяет его существование.
+     *
+     * Если пользователь не найден или заблокирован, метод ДОЛЖЕН вернуть null.
+     *
+     * @param UserInterface $user "Черновой" объект пользователя (минимум данных)
+     *
+     * @return null|UserInterface Полностью загруженный пользователь или null
+     */
+    public function enrich(UserInterface $user): ?UserInterface;
 }
