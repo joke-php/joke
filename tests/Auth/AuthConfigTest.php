@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Auth\Jwt\JwtAuthenticator;
+use Vasoft\Joke\Auth\Provider\ConfigUserProvider;
 use Vasoft\Joke\Auth\Session\SessionAuthenticator;
 use Vasoft\Joke\Auth\Rights\ConfigRightsSource;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
@@ -57,6 +58,22 @@ final class AuthConfigTest extends TestCase
         self::assertSame(ConfigRightsSource::class, $config->rightSources[2]);
     }
 
+    #[TestDox('Конфигурация принимает разные типы провайдеров пользователей')]
+    public function testUserProvider(): void
+    {
+        $object = new ConfigUserProvider([]);
+        $function = static fn(): ConfigUserProvider => new ConfigUserProvider([]);
+        $config = new AuthConfig();
+        $config
+            ->addUserProvider($object)
+            ->addUserProvider($function)
+            ->addUserProvider(ConfigUserProvider::class);
+
+        self::assertSame($object, $config->userProviders[0]);
+        self::assertSame($function, $config->userProviders[1]);
+        self::assertSame(ConfigUserProvider::class, $config->userProviders[2]);
+    }
+
     #[DataProvider('provideFrozenCases')]
     #[TestDox('Конфигурация не допускает изменений после заморозки')]
     public function testFrozen(string $setter, mixed $value): void
@@ -71,5 +88,6 @@ final class AuthConfigTest extends TestCase
     {
         yield ['addRightsSource', ConfigRightsSource::class];
         yield ['addAuthenticator', JwtAuthenticator::class];
+        yield ['addUserProvider', ConfigUserProvider::class];
     }
 }
