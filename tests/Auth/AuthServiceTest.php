@@ -10,6 +10,7 @@ use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Auth\AuthService;
+use Vasoft\Joke\Auth\Provider\ConfigUserProvider;
 use Vasoft\Joke\Auth\User;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -57,6 +58,7 @@ final class AuthServiceTest extends TestCase
     #[TestDox('Аутентификаторы инициализируются только при необходимости + можно использовать callback')]
     public function testInitializeIfNeed(): void
     {
+        $this->config->addUserProvider(new ConfigUserProvider([2 => []]));
         $this->initialized = [];
         $this->container->registerSingleton(UserInterface::class, new User(2));
 
@@ -73,6 +75,7 @@ final class AuthServiceTest extends TestCase
     #[TestDox('Аутентификаторы возможно добавлять по имени класса')]
     public function testAuthenticatorByClassName(): void
     {
+        $this->config->addUserProvider(new ConfigUserProvider([3 => []]));
         $user = new User(3);
         $this->initialized = [];
         $this->container->registerSingleton(UserInterface::class, $user);
@@ -88,6 +91,7 @@ final class AuthServiceTest extends TestCase
     #[TestDox('Аутентификатор вызывается только один раз')]
     public function testAuthOnce(): void
     {
+        $this->config->addUserProvider(new ConfigUserProvider([1 => []]));
         $this->config->addAuthenticator($this->createMockAuthenticator('first ', new User(1)));
         $authService = new AuthService($this->config, $this->container);
         ob_start();
@@ -96,6 +100,54 @@ final class AuthServiceTest extends TestCase
         self::assertSame('first ', ob_get_clean());
         self::assertTrue($user1->authorized);
         self::assertSame($user1, $user2);
+    }
+
+    #[TestDox('Если в провайдере не найде - возвращает гостя')]
+    public function testAuthExistsAndProviderNotfound(): void
+    {
+        $this->config->addUserProvider(new ConfigUserProvider([1 => []]));
+        $this->config->addAuthenticator($this->createMockAuthenticator('first ', new User(3)));
+        $authService = new AuthService($this->config, $this->container);
+        ob_start();
+        $user = $authService->getUser();
+        ob_get_clean();
+        self::assertFalse($user->authorized);
+    }
+
+    #[TestDox('Кеширует провайдеры')]
+    public function testCacheProvider(): void
+    {
+        $log = [];
+        $this->config->addUserProvider(static function () use (&$log) {
+            $log[] = 'init';
+
+            return new ConfigUserProvider([1 => []]);
+        });
+        $this->config->addAuthenticator($this->createMockAuthenticator('first ', new User(3)));
+        $authService = new AuthService($this->config, $this->container);
+        ob_start();
+        $authService->getUser();
+        ob_get_clean();
+        self::assertSame(['init'], $log);
+    }
+
+    #[TestDox('Бросает исключение если провайдер некорректного типа')]
+    public function testExceptionIfProviderWrongType(): void
+    {
+        $this->config->addUserProvider(static fn() => new \stdClass());
+        $this->config->addAuthenticator($this->createMockAuthenticator('first ', new User(4)));
+        $authService = new AuthService($this->config, $this->container);
+
+        try {
+            ob_start();
+            self::expectException(ConfigException::class);
+            self::expectExceptionMessageIs(
+                'User provider should implement "Vasoft\Joke\Contract\Auth\UserProviderInterface".',
+            );
+            $authService->getUser();
+        } finally {
+            ob_get_clean();
+        }
     }
 
     #[TestDox('Выбрасывается исключение если не правильный тип аутентификатора')]
