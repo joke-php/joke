@@ -90,6 +90,9 @@ abstract class Response
     {
         $headers = $this->headers->getAll();
         foreach ($headers as $name => $value) {
+            if (empty($value)) {
+                continue;
+            }
             header(sprintf('%s: %s', $name, $value));
         }
         foreach ($this->cookies as $cookie) {
