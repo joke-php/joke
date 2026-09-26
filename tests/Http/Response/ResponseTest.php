@@ -59,13 +59,22 @@ final class ResponseTest extends TestCase
         self::assertInstanceOf(HeadersCollection::class, $response->headers);
         self::assertSame(['Content-Type' => 'text/html'], $response->headers->getAll());
     }
-
-    public function testAddHeaderViaCollection(): void
+    #[TestDox('Заголовки с пустым значением не отправляются')]
+    #[RunInSeparateProcess]
+    public function testNotSendHeaderWithEmptyValue(): void
     {
         $response = new HtmlResponse(self::$cookies);
-        $response->headers->set('Content-Type', 'application/json');
+        $response->headers->set('Content-Type', '');
+        $headerParams = [];
+        $this->headerMock->expects(self::exactly(1))
+            ->willReturnCallback(static function ($header) use (&$headerParams): void {
+                $headerParams[] = $header;
+            });
+        ob_start();
+        $response->send();
+        ob_get_clean();
 
-        self::assertSame(['Content-Type' => 'application/json'], $response->headers->getAll());
+        self::assertSame(['HTTP/1.1 200 OK'], $headerParams);
     }
 
     #[RunInSeparateProcess]
