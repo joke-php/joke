@@ -59,6 +59,7 @@ final class ResponseTest extends TestCase
         self::assertInstanceOf(HeadersCollection::class, $response->headers);
         self::assertSame(['Content-Type' => 'text/html'], $response->headers->getAll());
     }
+
     #[TestDox('Заголовки с пустым значением не отправляются')]
     #[RunInSeparateProcess]
     public function testNotSendHeaderWithEmptyValue(): void
