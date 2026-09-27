@@ -14,6 +14,9 @@ namespace Vasoft\Joke\Http\Response;
 enum ResponseStatus: int
 {
     case OK = 200;
+    case MOVED_PERMANENTLY = 301;
+    case FOUND = 302;
+    case SEE_OTHER = 303;
     case BAD_REQUEST = 400;
     case UNAUTHORIZED = 401;
     case FORBIDDEN = 403;
@@ -32,6 +35,9 @@ enum ResponseStatus: int
     {
         return match ($this) {
             self::OK => 'OK',
+            self::MOVED_PERMANENTLY => 'Moved Permanently',
+            self::FOUND => 'Found',
+            self::SEE_OTHER => 'See Other',
             self::BAD_REQUEST => 'Bad Request',
             self::UNAUTHORIZED => 'Unauthorized',
             self::FORBIDDEN => 'Forbidden',
