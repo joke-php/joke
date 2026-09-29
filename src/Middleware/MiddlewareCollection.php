@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Middleware;
 
+use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
 
 /**
@@ -18,6 +19,8 @@ class MiddlewareCollection
      */
     private array $middlewares = [];
 
+    public function __construct(private readonly ServiceContainer $container) {}
+
     /**
      * Добавляет middleware в коллекцию
      * Если middleware именованный производится поиск, и, если найден, производится замена middleware и групп в той же позиции где
@@ -28,8 +31,14 @@ class MiddlewareCollection
      *
      * @return $this
      */
-    public function addMiddleware(MiddlewareInterface|string $middleware, string $name = '', array $groups = []): static
-    {
+    public function addMiddleware(
+        callable|MiddlewareInterface|string $middleware,
+        string $name = '',
+        array $groups = [],
+    ): static {
+        if (is_callable($middleware)) {
+            $middleware = new ClosureMiddleware($middleware, $this->container);
+        }
         if ('' === $name) {
             $this->middlewares[] = new MiddlewareDto($middleware, groups: $groups);
 
