@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Middleware;
 
+use PHPUnit\Framework\Attributes\TestDox;
+use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
+use Vasoft\Joke\Middleware\ClosureMiddleware;
 use Vasoft\Joke\Middleware\ExceptionMiddleware;
 use Vasoft\Joke\Middleware\MiddlewareCollection;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Middleware\StdMiddleware;
 use Vasoft\Joke\Http\HttpRequest;
+use Vasoft\Joke\Tests\Fixtures\Middlewares\SingleMiddleware;
 
 /**
  * @internal
@@ -34,7 +38,7 @@ final class MiddlewareCollectionTest extends TestCase
     {
         $testMiddleware1 = $this->getMiddleware(1);
         $testMiddleware2 = $this->getMiddleware(2);
-        $collection = new MiddlewareCollection();
+        $collection = new MiddlewareCollection(new ServiceContainer());
         $collection->addMiddleware(ExceptionMiddleware::class);
         $collection->addMiddleware($testMiddleware1, StdMiddleware::SESSION->value);
 
@@ -63,7 +67,7 @@ final class MiddlewareCollectionTest extends TestCase
         $testMiddleware3 = $this->getMiddleware(3);
         $testMiddleware4 = $this->getMiddleware(4);
 
-        $collection2 = new MiddlewareCollection();
+        $collection2 = new MiddlewareCollection(new ServiceContainer());
         $collection2->addMiddleware($testMiddleware3);
         $collection2->addMiddleware($testMiddleware4, StdMiddleware::SESSION->value);
 
@@ -84,12 +88,12 @@ final class MiddlewareCollectionTest extends TestCase
         $testMiddleware3 = $this->getMiddleware(3);
         $testMiddleware4 = $this->getMiddleware(4);
 
-        $collection1 = new MiddlewareCollection();
+        $collection1 = new MiddlewareCollection(new ServiceContainer());
         $collection1->addMiddleware($testMiddleware1, groups: ['post']);
         $collection1->addMiddleware($testMiddleware2, 'singleton', ['example']);
         $collection1->addMiddleware($testMiddleware3, groups: ['example']);
 
-        $collection2 = new MiddlewareCollection();
+        $collection2 = new MiddlewareCollection(new ServiceContainer());
         $collection2->addMiddleware($testMiddleware4, 'singleton', ['post', 'token']);
 
         $collection3 = $collection1->withMiddlewares($collection2->getMiddlewares());
@@ -104,5 +108,15 @@ final class MiddlewareCollectionTest extends TestCase
 
         $list = $collection3->getArrayForRun(['example', 'token']);
         self::assertCount(2, $list);
+    }
+
+    #[TestDox('Оборачивает замыкание в Middleware обертку')]
+    public function testWrapCallable(): void
+    {
+        $collection = new MiddlewareCollection(new ServiceContainer());
+        $collection->addMiddleware(static fn() => new SingleMiddleware());
+        $list = $collection->getMiddlewares();
+        self::assertCount(1, $list);
+        self::assertInstanceOf(ClosureMiddleware::class, $list[0]->middleware);
     }
 }
