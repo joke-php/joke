@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Application\KernelServiceProvider;
+use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
@@ -43,5 +44,6 @@ final class KernelServiceProviderTest extends TestCase
         yield [CsrfConfig::class];
         yield [PageBuilderConfig::class];
         yield [CorsConfig::class];
+        yield [AuthConfig::class];
     }
 }
