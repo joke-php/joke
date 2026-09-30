@@ -45,8 +45,8 @@ final class AuthConfigTest extends TestCase
     #[TestDox('Конфигурация принимает разные типы источников прав')]
     public function testRightsSource(): void
     {
-        $object = new ConfigRightsSource();
-        $function = static fn(): ConfigRightsSource => new ConfigRightsSource();
+        $object = new ConfigRightsSource([]);
+        $function = static fn(): ConfigRightsSource => new ConfigRightsSource([]);
         $config = new AuthConfig();
         $config
             ->addRightsSource($object)
