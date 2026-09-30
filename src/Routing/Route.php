@@ -107,7 +107,7 @@ class Route implements RouteInterface
         public readonly string $name = '',
     ) {
         $this->method = $method;
-        $this->middlewares = new MiddlewareCollection();
+        $this->middlewares = new MiddlewareCollection($serviceContainer);
     }
 
     /**
@@ -133,7 +133,7 @@ class Route implements RouteInterface
      * @param class-string|MiddlewareInterface $middleware Класс middleware или его экземпляр
      * @param string                           $name       Имя middleware (для возможности переопределения)
      */
-    public function addMiddleware(MiddlewareInterface|string $middleware, string $name = ''): static
+    public function addMiddleware(callable|MiddlewareInterface|string $middleware, string $name = ''): static
     {
         $this->middlewares->addMiddleware($middleware, $name);
 
