@@ -11,7 +11,8 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "Vasoft\\Joke\\Tests\\": "tests/"
+      "Vasoft\\Joke\\Tests\\": "tests/",
+      "Vasoft\\Joke\\Demo\\": "demo/"
     }
   },
   "authors": [
