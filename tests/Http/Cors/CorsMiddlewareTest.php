@@ -264,6 +264,7 @@ final class CorsMiddlewareTest extends TestCase
         self::assertArrayHasKey('Access-Control-Allow-Headers', $headers);
         self::assertSame('example-header, example-next', $headers['Access-Control-Allow-Headers']);
     }
+
     #[TestDox('При allowCredentials=true и * в допустимых, но нет запрошенных то заголовок не возвращается')]
     public function testAllowCredentialsAndWildcardEmpty(): void
     {

@@ -2,12 +2,16 @@
 
 declare(strict_types=1);
 
+use Vasoft\Joke\Auth\AuthService;
+use Vasoft\Joke\Auth\Rights\RightsChecker;
+use Vasoft\Joke\Demo\Auth\Personal;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 use Vasoft\Joke\Tests\Fixtures\Controllers\InvokeController;
 use Vasoft\Joke\Routing\Router;
 use Vasoft\Joke\Tests\Fixtures\Controllers\SingleController;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
+use Vasoft\Joke\Auth\AuthMiddleware;
 
 /**
  * @var Router $router
@@ -25,10 +29,28 @@ $router->get(
                     <li><a href="/shop/an">Товары имеющие "an" в названии</a></li>
                     <li><a href="/shop/info">Вызов статического метода как замыкания</a></li>
                     <li><a href="/shop/infoNew">Вызов статического метода переданного строкой</a></li>
+                    <li><a href="/personal">Личный кабинет</a></li>
                 </ul>
                 HTML,
         ),
 );
+$router->get('/personal/login', [Personal::class, 'login']);
+$router->post('/personal/login', [Personal::class, 'checkLogin']);
+$router->get('/personal', [Personal::class, 'index'])
+    ->addMiddleware(
+        static fn(
+            AuthService $authService,
+            RightsChecker $rightsChecker,
+            ResponseBuilder $responseBuilder,
+        ) => new AuthMiddleware(
+            $authService,
+            $rightsChecker,
+            $responseBuilder,
+            ['joke:personal'],
+            '/personal/login',
+        ),
+    );
+
 $router->get('/name/{name:slug}', static fn(string $name) => 'Hi ' . $name, 'hiName');
 $router->get('/json/{name:slug}', static fn(string $name) => ['fio' => $name]);
 $route = $router->get('/name-filtered/{name:slug}', static fn(string $name) => 'Hi ' . $name)->addGroup('filtered');
