@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http\Cors;
 
+use phpmock\phpunit\PHPMock;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
+use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Application\ApplicationConfig;
 use Vasoft\Joke\Foundation\Request;
@@ -29,6 +32,8 @@ use Vasoft\Joke\Http\Response\ResponseStatus;
  */
 final class CorsMiddlewareTest extends TestCase
 {
+    use PHPMock;
+
     private static ResponseBuilder $builder;
     private HtmlResponse $response;
 
@@ -58,6 +63,14 @@ final class CorsMiddlewareTest extends TestCase
     private function defaultRouteHandler(): HtmlResponse
     {
         $this->response->headers->set('Route-Executed', 'true');
+
+        return $this->response;
+    }
+
+    private function defaultRouteHandlerWithVary(): HtmlResponse
+    {
+        $this->response->headers->set('Route-Executed', 'true');
+        $this->response->headers->set('Vary', 'Example1, Example2');
 
         return $this->response;
     }
@@ -120,7 +133,8 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+
+        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
         self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
@@ -144,13 +158,34 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
         self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
         self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
         self::assertArrayNotHasKey('Route-Executed', $headers);
         self::assertSame(ResponseStatus::FORBIDDEN, $response->status);
+    }
+
+    #[TestDox('Возможность использовать * в списке допустимых заголовков')]
+    public function testWildcardForAccessControlRequestHeaders(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'demo-header',
+                'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET',
+                'REQUEST_METHOD' => 'OPTIONS',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ],
+        );
+        $config = new CorsConfig()
+            ->setAllowedCors(true)
+            ->setHeaders(['Example', '*']);
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+        $headers = $response->headers->getAll();
+
+        self::assertSame(ResponseStatus::OK, $response->status);
     }
 
     public function testCorsAllowOriginAllowPreflightHeadersNotSetCredentialsOff(): void
@@ -192,7 +227,9 @@ final class CorsMiddlewareTest extends TestCase
             ->setAllowedCors(true);
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
+
         $headers = $response->headers->getAll();
+
         self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
         self::assertSame('https://example.com', $headers['Access-Control-Allow-Origin']);
         self::assertArrayHasKey('Access-Control-Allow-Credentials', $headers);
@@ -202,6 +239,72 @@ final class CorsMiddlewareTest extends TestCase
         self::assertArrayHasKey('Access-Control-Max-Age', $headers);
         self::assertArrayNotHasKey('Route-Executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
+    }
+
+    #[TestDox('При allowCredentials=true и * в допустимых отправляются запрошенные')]
+    public function testAllowCredentialsAndWildcard(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET',
+                'HTTP_ACCESS_CONTROL_REQUEST_HEADERS' => 'EXAMPLE-HEADER,  example-next',
+                'REQUEST_METHOD' => 'OPTIONS',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ],
+        );
+        $config = new CorsConfig()
+            ->setAllowCredentials(true)
+            ->setOrigins(['https://example.com'])
+            ->setHeaders(['*'])
+            ->setAllowedCors(true);
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+        self::assertArrayHasKey('Access-Control-Allow-Headers', $headers);
+        self::assertSame('example-header, example-next', $headers['Access-Control-Allow-Headers']);
+    }
+    #[TestDox('При allowCredentials=true и * в допустимых, но нет запрошенных то заголовок не возвращается')]
+    public function testAllowCredentialsAndWildcardEmpty(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'HTTP_ACCESS_CONTROL_REQUEST_METHOD' => 'GET',
+                'REQUEST_METHOD' => 'OPTIONS',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ],
+        );
+        $config = new CorsConfig()
+            ->setAllowCredentials(true)
+            ->setOrigins(['https://example.com'])
+            ->setHeaders(['*'])
+            ->setAllowedCors(true);
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+        self::assertArrayNotHasKey('Access-Control-Allow-Headers', $headers);
+    }
+
+    #[TestDox('Если заголовок Vary уже был - добавляет значение')]
+    public function testUpendVary(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ],
+        );
+        $config = new CorsConfig()
+            ->setAllowCredentials(true)
+            ->setOrigins(['https://example.com'])
+            ->setAllowedCors(true);
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandlerWithVary(...));
+
+        $headers = $response->headers->getAll();
+        self::assertArrayHasKey('Vary', $headers);
+        self::assertSame('Example1, Example2, Origin', $headers['Vary']);
     }
 
     public function testCorsAllowOriginAllowPreflightHeadersInvalid(): void
@@ -218,7 +321,7 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
         self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
@@ -260,7 +363,7 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
         self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
         self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
@@ -304,6 +407,112 @@ final class CorsMiddlewareTest extends TestCase
         self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
         self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
         self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
+        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertSame(ResponseStatus::OK, $response->status);
+    }
+
+    #[RunInSeparateProcess]
+    #[TestDox('Некорректный URL запроса равносилен другом origin')]
+    public function testIncorrectRequestedUrl(): void
+    {
+        $parseUrl = self::getFunctionMock('\Vasoft\Joke\Http\Cors', 'parse_url');
+        $parseUrl->expects(self::once())->willReturn(false);
+        $request = new HttpRequest(
+            server: [
+                'REQUEST_METHOD' => 'OPTIONS',
+                'HTTP_ORIGIN' => 'https://example.com',
+            ],
+        );
+        $response = new CorsMiddleware(new CorsConfig(), self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
+        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
+        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
+        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
+        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertSame(ResponseStatus::FORBIDDEN, $response->status);
+    }
+
+    #[TestDox('Указан порт: учитывает порт и приводит регистр ')]
+    public function testWithPort(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_HOST' => 'LOCALHOST:8002',
+                'HTTP_ORIGIN' => 'http://localhost:8002',
+                'HTTPS' => '',
+            ],
+        );
+
+        $config = new CorsConfig()
+            ->setAllowedCors(true)
+            ->setAllowCredentials(true)
+            ->setOrigins(['http://localhost:8002']);
+
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertSame(ResponseStatus::OK, $response->status);
+    }
+
+    #[TestDox('Если не указан порт подставляет по умолчанию. Не SSL соединение')]
+    public function testDefaultPortNoSsl(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_HOST' => 'LOCALHOST',
+                'HTTP_ORIGIN' => 'http://localhost:80',
+                'HTTPS' => '',
+            ],
+        );
+
+        $config = new CorsConfig()
+            ->setAllowedCors(true)
+            ->setAllowCredentials(true)
+            ->setOrigins(['http://localhost:80']);
+
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertSame(ResponseStatus::OK, $response->status);
+    }
+
+    #[TestDox('Если не указан порт подставляет по умолчанию. Не SSL соединение')]
+    public function testDefaultPortSsl(): void
+    {
+        $request = new HttpRequest(
+            server: [
+                'REQUEST_METHOD' => 'GET',
+                'HTTP_HOST' => 'LOCALHOST',
+                'HTTP_ORIGIN' => 'https://localhost:443',
+                'HTTPS' => true,
+            ],
+        );
+
+        $config = new CorsConfig()
+            ->setAllowedCors(true)
+            ->setAllowCredentials(true)
+            ->setOrigins(['http://localhost:443']);
+
+        $response = new CorsMiddleware($config, self::$builder)
+            ->handle($request, $this->defaultRouteHandler(...));
+
+        $headers = $response->headers->getAll();
+
+        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
         self::assertArrayHasKey('Route-Executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }

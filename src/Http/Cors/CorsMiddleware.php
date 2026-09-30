@@ -5,11 +5,13 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Http\Cors;
 
 use Vasoft\Joke\Contract\Middleware\MiddlewareInterface;
+use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Http\Response\Response;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Http\Response\ResponseStatus;
+use Vasoft\Joke\Exceptions\ConversionException;
 
 /**
  * Middleware для реализации механизма CORS (Cross-Origin Resource Sharing).
@@ -25,6 +27,8 @@ use Vasoft\Joke\Http\Response\ResponseStatus;
  *  - Динамически проверяет заголовок Origin запроса на соответствие списку разрешенных.
  *  - Добавляет заголовок Vary: Origin для корректного кэширования ответов.
  *  - Блокирует установку заголовков, если источник не прошел валидацию.
+ *  - При выключенном CORS (allowedCors = false) действует принцип «что не разрешено явно, то запрещено»:
+ *      кросс-доменные запросы отклоняются со статусом 403 Forbidden.
  */
 class CorsMiddleware implements MiddlewareInterface
 {
@@ -59,32 +63,144 @@ class CorsMiddleware implements MiddlewareInterface
      * */
     public function handle(HttpRequest $request, callable $next): Response
     {
-        $origin = $request->getOrigin();
-        $needCors = $this->corsConfig->allowedCors && '' !== $origin;
-        $isPreflight = HttpMethod::OPTIONS === $request->method;
-        if ('' !== $origin && (!$this->corsConfig->allowedCors || !$this->isOriginAllowed($origin))) {
-            $response = $this->responseBuilder->makeDefault();
-            $response->setStatus(ResponseStatus::FORBIDDEN);
-
-            return $response;
+        if ($this->isSameOrigin($request)) {
+            return $next($request);
         }
-        if ($isPreflight) {
+        $origin = $request->getOrigin();
+        if (!$this->corsConfig->allowedCors || !$this->isOriginAllowed($origin)) {
+            return $this->makeErrorResponse($request, ResponseStatus::FORBIDDEN);
+        }
+        if (HttpMethod::OPTIONS === $request->method) {
             return $this->handlePreflight($request);
         }
 
-        if ($needCors && !in_array($request->method, $this->corsConfig->methods, true)) {
-            $response = $this->responseBuilder->makeDefault();
-            $response->setStatus(ResponseStatus::METHOD_NOT_ALLOWED);
-
-            return $response;
+        if (!in_array($request->method, $this->corsConfig->methods, true)) {
+            return $this->makeErrorResponse($request, ResponseStatus::METHOD_NOT_ALLOWED);
         }
         $response = $next($request);
         $preparedResponse = $this->responseBuilder->make($response);
-        if ($needCors) {
-            $this->setHeaders($request, $preparedResponse);
-        }
+        $this->setHeaders($request, $preparedResponse);
 
         return $preparedResponse;
+    }
+
+    private function makeErrorResponse(HttpRequest $request, ResponseStatus $status): Response
+    {
+        $response = $this->responseBuilder->makeDefault();
+        $response->setStatus($status);
+
+        // Origin разрешён — отдаём его, чтобы браузер показал реальную ошибку
+        if ($this->corsConfig->allowedCors && $this->isOriginAllowed($request->getOrigin())) {
+            $this->setOriginAndCredentials($request, $response);
+        }
+
+        // Vary нужен всегда, когда ответ зависит от Origin
+        $this->setVaryHeaders($response);
+
+        return $response;
+    }
+
+    /**
+     * Проверяет, является ли Origin запроса "своим" (совпадает с текущим хостом).
+     *
+     * Origin по спецификации — это scheme://host:port, поэтому сравниваются все
+     * три компонента. Порт нормализуется: отсутствующий порт приравнивается
+     * к стандартному для схемы (80 для http, 443 для https).
+     *
+     * @param HttpRequest $request объект входящего HTTP-запроса
+     *
+     * @return bool true если Origin совпадает с текущим хостом
+     *
+     * @throws JokeException
+     */
+    private function isSameOrigin(HttpRequest $request): bool
+    {
+        $origin = $request->getOrigin();
+        if ('' === $origin) {
+            return true;
+        }
+        $parsedOrigin = parse_url($origin);
+        if (false === $parsedOrigin || !isset($parsedOrigin['host'])) {
+            return false;
+        }
+
+        $currentScheme = $this->getCurrentScheme($request);
+        [$currentHost, $currentPort] = $this->parseHostHeader(
+            $request->headers->get('Host', ''),
+            $currentScheme,
+        );
+
+        $originScheme = strtolower($parsedOrigin['scheme'] ?? 'http');
+        $originHost = strtolower($parsedOrigin['host']);
+        $originPort = $this->normalizePort($parsedOrigin['port'] ?? null, $originScheme);
+
+        return $originScheme === $currentScheme
+            && $originHost === $currentHost
+            && $originPort === $currentPort;
+    }
+
+    /**
+     * Определяет схему текущего запроса.
+     *
+     * @return string 'http' или 'https'
+     *
+     * @throws ConversionException При ошибках приведения к строке
+     */
+    private function getCurrentScheme(HttpRequest $request): string
+    {
+        return $request->isSecure() ? 'https' : 'http';
+    }
+
+    /**
+     * Разбирает заголовок Host на хост и порт.
+     *
+     * Поддерживаются форматы:
+     * - example.com
+     * - example.com:8080
+     * - [::1]:8080 (IPv6)
+     *
+     * @return array{0: string, 1: int} [host, port]
+     */
+    private function parseHostHeader(string $hostHeader, string $scheme): array
+    {
+        $hostHeader = trim($hostHeader);
+        if ('' === $hostHeader) {
+            return ['', $this->defaultPort($scheme)];
+        }
+
+        // IPv6: [::1]:8080
+        if ('[' === $hostHeader[0]) {
+            $end = strpos($hostHeader, ']');
+            $host = substr($hostHeader, 0, $end + 1);
+            $rest = substr($hostHeader, $end + 1);
+            $port = str_starts_with($rest, ':')
+                ? (int) substr($rest, 1)
+                : $this->defaultPort($scheme);
+
+            return [strtolower($host), $port];
+        }
+
+        if (str_contains($hostHeader, ':')) {
+            [$host, $port] = explode(':', $hostHeader, 2);
+
+            return [strtolower($host), (int) $port];
+        }
+
+        return [strtolower($hostHeader), $this->defaultPort($scheme)];
+    }
+
+    /**
+     * Приводит порт Origin к числовому значению,
+     * подставляя стандартный порт схемы, если порт не указан.
+     */
+    private function normalizePort(?int $port, string $scheme): int
+    {
+        return $port ?? $this->defaultPort($scheme);
+    }
+
+    private function defaultPort(string $scheme): int
+    {
+        return 'https' === strtolower($scheme) ? 443 : 80;
     }
 
     /**
@@ -116,12 +232,10 @@ class CorsMiddleware implements MiddlewareInterface
      */
     private function handlePreflight(HttpRequest $request): Response
     {
-        $response = $this->responseBuilder->makeDefault();
         if ($this->isPreflightMethodInvalid($request) || $this->isPreflightHeadersInvalid($request)) {
-            $response->setStatus(ResponseStatus::FORBIDDEN);
-
-            return $response;
+            return $this->makeErrorResponse($request, ResponseStatus::FORBIDDEN);
         }
+        $response = $this->responseBuilder->makeDefault();
         $this->setHeaders($request, $response);
 
         return $response;
@@ -147,10 +261,10 @@ class CorsMiddleware implements MiddlewareInterface
         }
 
         try {
-            $methodEnum = HttpMethod::from($requestedMethod);
+            $methodEnum = HttpMethod::from(strtoupper($requestedMethod));
 
             return !in_array($methodEnum, $this->corsConfig->methods, true);
-        } catch (\ValueError $exception) {
+        } catch (\ValueError) {
             return true;
         }
     }
@@ -175,6 +289,9 @@ class CorsMiddleware implements MiddlewareInterface
         }
         $requestedHeadersArray = array_map('trim', explode(',', strtolower($requestedHeaders)));
         $allowedHeadersArray = array_map('strtolower', $this->corsConfig->headers);
+        if (in_array('*', $allowedHeadersArray, true)) {
+            return false;
+        }
         foreach ($requestedHeadersArray as $header) {
             if (!in_array($header, $allowedHeadersArray, true)) {
                 return true;
@@ -200,11 +317,40 @@ class CorsMiddleware implements MiddlewareInterface
     private function setHeaders(HttpRequest $request, Response $response): void
     {
         $this->setOriginAndCredentials($request, $response);
+        $allowedHeaders = $this->getAllowedHeadersAsString($request);
+        if ('' !== $allowedHeaders) {
+            $response->headers->set('Access-Control-Allow-Headers', $allowedHeaders);
+        }
         $response->headers
             ->set('Access-Control-Allow-Methods', $this->corsConfig->getMethodsAsString())
-            ->set('Access-Control-Allow-Headers', $this->corsConfig->getHeadersAsString())
             ->set('Access-Control-Expose-Headers', $this->corsConfig->getExposeHeadersAsString())
             ->set('Access-Control-Max-Age', (string) $this->corsConfig->maxAge);
+    }
+
+    /**
+     * Возвращает значение для Access-Control-Allow-Headers.
+     *
+     * При allowCredentials=true нельзя отдавать '*': браузеры отклонят preflight.
+     * В этом случае зеркалим заголовки, запрошенные клиентом в preflight,
+     * с нормализацией (trim, lowercase, удаление пустых значений).
+     */
+    private function getAllowedHeadersAsString(HttpRequest $request): string
+    {
+        if (!$this->corsConfig->allowCredentials || !in_array('*', $this->corsConfig->headers, true)) {
+            return $this->corsConfig->getHeadersAsString();
+        }
+        $requestedHeaders = $request->headers->get('Access-Control-Request-Headers', '');
+        if ('' === $requestedHeaders) {
+            return '';
+        }
+
+        $headers = array_map('trim', explode(',', strtolower($requestedHeaders)));
+        $headers = array_filter(
+            $headers,
+            static fn(string $header): bool => '' !== $header,
+        );
+
+        return implode(', ', $headers);
     }
 
     /**
@@ -232,6 +378,25 @@ class CorsMiddleware implements MiddlewareInterface
         if ($this->corsConfig->allowCredentials) {
             $response->headers->set('Access-Control-Allow-Credentials', 'true');
         }
-        $response->headers->set('Vary', 'Origin');
+        $this->setVaryHeaders($response);
+    }
+
+    /**
+     * Добавляет заголовок Vary.
+     *
+     * @throws ConversionException Если значение ранее добавленного заголовка нельзя привести к строке
+     */
+    private function setVaryHeaders(Response $response): void
+    {
+        $vary = $response->headers->getString('Vary', '');
+
+        if ('' === $vary) {
+            $response->headers->set('Vary', 'Origin');
+        } else {
+            $varyHeaders = array_map('trim', explode(',', $vary));
+            if (!in_array('Origin', $varyHeaders, true)) {
+                $response->headers->set('Vary', $vary . ', Origin');
+            }
+        }
     }
 }
