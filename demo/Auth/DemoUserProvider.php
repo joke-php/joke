@@ -28,6 +28,8 @@ class DemoUserProvider implements UserProviderInterface
      */
     private array $userRepository = [
         'demo' => 'Demo User',
+        'api_user_1' => ['name' => 'API User 1', 'email' => 'api1@example.com'],
+        'api_user_2' => ['name' => 'API User 2', 'email' => 'api2@example.com'],
     ];
 
     /**

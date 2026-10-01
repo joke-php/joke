@@ -60,7 +60,7 @@ composer run dev
     - [x] Реализация маршрутизации
     - [x] Реализация сервисный контейнер
     - [ ] Консольная система команд
-    - [ ] Авторизация
+    - [x] Авторизация
     - [ ] Валидация данных
     - [x] Обработка ошибок
     - [x] Логирование
@@ -68,10 +68,8 @@ composer run dev
     - [ ] Миграции
     - [x] Настраиваемое окружение через .env файл
 - [ ] **Создание шаблонизатора**
-    - [ ] Создание базового шаблонизатора HTML
+    - [x] Создание базового шаблонизатора HTML
     - [ ] Рендер Markdown файлов для быстрого создания документационных сайтов из .md файлов.
-    - [ ] Рендер Swagger yaml файлов для автоматического отображения OpenAPI-спецификаций без внешних UI (например, без
-      Swagger UI)
 - [ ] **Создание приложения форума**
 - [ ] **Создание скелетонов**
     - [ ] REST API приложения
@@ -92,7 +90,7 @@ and [voral/version-increment](https://github.com/Voral/vs-version-incrementor).
 
 ## Requirements
 
-- PHP 8.4+
+- PHP 8.5+
 - Composer
 
 ## Implemented Features
@@ -123,7 +121,7 @@ Your application will be available at: http://localhost:8000
     - [x] Implement routing
     - [x] Implement service container
     - [ ] Console command system
-    - [ ] Authentication
+    - [x] Authentication
     - [ ] Data validation
     - [x] Error handling
     - [x] Logging
@@ -132,9 +130,8 @@ Your application will be available at: http://localhost:8000
     - [x] Environment configuration via `.env` file
 
 - [ ] **Template Engine**
-    - [ ] Basic HTML template engine
+    - [x] Basic HTML template engine
     - [ ] Render Markdown files for quickly generating documentation sites from `.md` files
-    - [ ] Render Swagger YAML files to display OpenAPI specifications without external UIs (e.g., without Swagger UI)
 
 - [ ] **Build a Forum Application**
 
