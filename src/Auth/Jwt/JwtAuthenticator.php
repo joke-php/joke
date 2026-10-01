@@ -54,7 +54,8 @@ class JwtAuthenticator implements AuthenticatorInterface
 
         try {
             $payload = $this->codec->decode($token);
-            if (!empty($payload[self::KEY_USER_ID])) {
+
+            if (array_key_exists(self::KEY_USER_ID, $payload)) {
                 $userId = $payload[self::KEY_USER_ID];
                 unset($payload[self::KEY_USER_ID]);
 
