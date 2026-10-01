@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use Vasoft\Joke\Auth\AuthService;
 use Vasoft\Joke\Auth\Rights\RightsChecker;
+use Vasoft\Joke\Demo\Auth\ApiAuthController;
 use Vasoft\Joke\Demo\Auth\Personal;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 use Vasoft\Joke\Tests\Fixtures\Controllers\InvokeController;
@@ -72,6 +73,20 @@ $router->post('/queries', $routeHandler);
 $router->put('/queries', $routeHandler);
 $router->patch('/queries', $routeHandler);
 $router->head('/queries', $routeHandler);
+$router->get('/api/token', [ApiAuthController::class, 'issueToken']);
+$router->get(
+    '/api/data',
+    static fn(AuthService $authService) => [
+        'data' => 'sensitive',
+        'user' => $authService->getUser()->data->get('name', []),
+    ],
+)->addMiddleware(
+    static fn(
+        AuthService $authService,
+        RightsChecker $rightsChecker,
+        ResponseBuilder $responseBuilder,
+    ) => new AuthMiddleware($authService, $rightsChecker, $responseBuilder, ['api:read'], null),
+);
 $router->get('/{*}', static fn(string $path, ResponseBuilder $builder) => $builder->makeDefault()
     ->setStatus(ResponseStatus::NOT_FOUND)
     ->setBody("Запрошен несуществующий путь: {$path}"));

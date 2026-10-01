@@ -16,4 +16,19 @@
 - [ ] Реализовать новый StringCollection работающий исключительно со строками
 - [ ] Повысить уровень проверки стана
 - [ ] LoginService продумать контракт и реализацию. Должно работать в соответствии с AuthService
+- [ ] Добавить валидацию конфига аутентификации, продумать что проверять. Возможно в AbstractConfig добавить метод beforeFreeze. Набросок:
+    ```
+    public function verify(): void
+    {
+        if (empty($this->authenticators)) {
+            throw new ConfigException('No authenticators configured');
+        }
+        if (empty($this->userProviders)) {
+            throw new ConfigException('No user providers configured');
+        }
+        if (empty($this->rightSources)) {
+            throw new ConfigException('No rights sources configured);
+        }
+    }
+  ```
 

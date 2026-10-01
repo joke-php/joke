@@ -4,3 +4,4 @@
 /var
 /tests/**/var
 public/assets
+.env.*

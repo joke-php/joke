@@ -4,7 +4,7 @@ Joke поддерживает многоуровневую систему middle
 порядком выполнения. Middleware позволяют инкапсулировать кросс-функциональную логику: аутентификацию, логирование,
 CORS, обработку ошибок и т.д.
 
-Все middleware реализуются как классы, совместимые с вызываемым интерфейсом (например, invokable-классы или callable).
+Все middleware должны реализовывать интерфейс `MiddlewareInterface`. При регистрации можно использовать как имена классов, так и callable-фабрики (замыкания), которые возвращают экземпляр этого интерфейса.
 
 ## Уровни middleware
 
@@ -29,7 +29,7 @@ CORS, обработку ошибок и т.д.
 тот же класс дважды — он будет выполнен дважды:
 
 ```php
-$router->get('/hello', fn() => 'hi','hello')
+$router->get('/hello', fn() => 'hello')
     ->addMiddleware(CustomMiddleware1::class)
     ->addMiddleware(CustomMiddleware1::class);
 ```
@@ -42,7 +42,7 @@ $router->get('/hello', fn() => 'hi','hello')
 заменяется:
 
 ```php
-$router->get('/hello', fn() => 'hi','hello')
+$router->get('/hello', fn() => 'hello')
     ->addMiddleware(CustomMiddleware1::class, 'auth')
     ->addMiddleware(CustomMiddleware2::class, 'auth'); // Заменит CustomMiddleware1
 ```
@@ -160,6 +160,29 @@ $router->get('/custom', fn() => '...')
 
 Эти middleware обеспечивают базовую безопасность и стабильность веб-приложений «из коробки». При необходимости их можно
 заменить, зарегистрировав собственный middleware с тем же именем.
+
+## Регистрация middleware через замыкания
+
+Для middleware, которые требуют дополнительных параметров, при это не размещены в контейнере, удобнее всего использовать замыкания:
+
+```php
+$router->get('/protected', handler)
+    ->addMiddleware(
+        static fn(
+            AuthService $authService,
+            RightsChecker $rightsChecker,
+            ResponseBuilder $responseBuilder,
+        ) => new AuthMiddleware(
+            $authService,
+            $rightsChecker,
+            $responseBuilder,
+            ['posts:edit'],
+            '/login'
+        ),
+    );
+```
+
+Фреймворк автоматически оборачивает такое замыкание в ClosureMiddleware. Это позволяет использовать фабричный паттерн для middleware: вы можете явно передать в конструктор middleware специфические параметры (например, права доступа, пути редиректа или настройки), которые зависят от контекста конкретного маршрута, одновременно пользуясь автоматическим внедрением основных сервисов через контейнер. 
 
 ## Контракт middleware
 

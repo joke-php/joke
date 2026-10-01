@@ -16,6 +16,10 @@
 /postman export-ignore
 /docs export-ignore
 /routes export-ignore
+/demo
+/config
+
 CHANGELOG.md export-ignore
 TODO.md export-ignore
 video-idea.md export-ignore
+.env
