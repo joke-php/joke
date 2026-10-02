@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Tests\Http\Response;
 
 use phpmock\phpunit\MockObjectProxy;
 use phpmock\phpunit\PHPMock;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\MockObject\MockObject;
@@ -13,6 +14,7 @@ use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Collections\HeadersCollection;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
+use Vasoft\Joke\Http\Exceptions\HttpException;
 use Vasoft\Joke\Http\Response\HtmlResponse;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 
@@ -58,6 +60,33 @@ final class ResponseTest extends TestCase
         $response = new HtmlResponse(self::$cookies);
         self::assertInstanceOf(HeadersCollection::class, $response->headers);
         self::assertSame(['Content-Type' => 'text/html'], $response->headers->getAll());
+    }
+
+    #[TestDox('Не допускает наличие управляющих символов в значении заголовка')]
+    #[DataProvider('provideExceptionOnControlCharactersInHeaderCases')]
+    public function testExceptionOnControlCharactersInHeader(string $name, string $value, string $expected): void
+    {
+        $response = new HtmlResponse(self::$cookies);
+        $response->headers->set($name, $value);
+
+        $this->headerMock->expects(self::once());
+        self::expectException(HttpException::class);
+        self::expectExceptionMessageIs($expected);
+        $response->send();
+    }
+
+    public static function provideExceptionOnControlCharactersInHeaderCases(): iterable
+    {
+        yield [
+            "X-Custom: value\r\n",
+            'test-value',
+            'Invalid header name "X-Custom: value": contains invalid characters.',
+        ];
+        yield [
+            'X-Custom',
+            "test-value\r\nTest: check",
+            'Invalid "X-Custom" header value: contains control characters.',
+        ];
     }
 
     #[TestDox('Заголовки с пустым значением не отправляются')]
