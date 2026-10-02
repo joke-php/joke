@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Collections\HeadersCollection;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
+use Vasoft\Joke\Http\Exceptions\HttpException;
 
 /**
  * Абстрактный базовый класс HTTP-ответа.
@@ -88,17 +89,48 @@ abstract class Response
      */
     protected function sendHeaders(): void
     {
-        $headers = $this->headers->getAll();
-        foreach ($headers as $name => $value) {
-            if (empty($value)) {
+        foreach ($this->headers->getAll() as $name => $value) {
+            if ('' === (string) $value) {
                 continue;
             }
+            $this->assertValidHeader($name, (string) $value);
             header(sprintf('%s: %s', $name, $value));
         }
+
         foreach ($this->cookies as $cookie) {
-            header('Set-Cookie: ' . $cookie->headerValue());
+            $cookieHeader = 'Set-Cookie: ' . $cookie->headerValue();
+            $this->assertNoControlCharacters($cookieHeader);
+            header($cookieHeader);
         }
+
         header('HTTP/1.1 ' . $this->status->value . ' ' . $this->status->http());
+    }
+
+    /**
+     * Проверяет корректность имени и значения HTTP-заголовка.
+     *
+     * Имя должно состоять только из token-символов (tchar по RFC 7230),
+     * значение не должно содержать управляющих символов.
+     */
+    private function assertValidHeader(string $name, string $value): void
+    {
+        if (preg_match('/[^a-zA-Z0-9!#$%&\'*+\-.^_`|~]/', $name)) {
+            throw new HttpException(sprintf('Invalid header name "%s": contains invalid characters.', trim($name)));
+        }
+
+        $this->assertNoControlCharacters($value, $name);
+    }
+
+    /**
+     * Запрещает управляющие символы (CTL) в значении заголовка.
+     *
+     * HTAB (\t) разрешён: RFC 7230 допускает SP и HTAB внутри field-value.
+     */
+    private function assertNoControlCharacters(string $value, string $context = 'header'): void
+    {
+        if (preg_match('/[\x00-\x08\x0A-\x1F\x7F]/', $value)) {
+            throw new HttpException(sprintf('Invalid "%s" header value: contains control characters.', $context));
+        }
     }
 
     /**

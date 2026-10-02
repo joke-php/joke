@@ -10,7 +10,6 @@ use Vasoft\Joke\Auth\Rights\RightsChecker;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
-use Vasoft\Joke\Contract\Auth\UserInterface;
 use Vasoft\Joke\Contract\Provider\ConfigurableServiceProviderInterface;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Cors\CorsConfig;
