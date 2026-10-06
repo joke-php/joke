@@ -6,8 +6,10 @@ namespace Vasoft\Joke\Tests\Application;
 
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\CoversClass;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\TestDox;
+use Vasoft\Joke\Exceptions\OutsideFileException;
 use Vasoft\Joke\Support\FileSystem;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
@@ -126,7 +128,7 @@ final class FileSystemTest extends TestCase
     #[TestDox('normalizeDir не меняет абсолютный путь, но добавляет завершающий разделитель')]
     public function testNormalizeDirAbsolute(): void
     {
-        $abs = '/tmp/some_dir';
+        $abs = $this->fileSystem->basePath . 'sub';
         self::assertSame($abs . \DIRECTORY_SEPARATOR, $this->fileSystem->normalizeDir($abs));
     }
 
@@ -151,7 +153,7 @@ final class FileSystemTest extends TestCase
     #[TestDox('normalizeFile возвращает абсолютный путь без изменений')]
     public function testNormalizeFileAbsolute(): void
     {
-        $abs = '/tmp/file.txt';
+        $abs = $this->fileSystem->basePath . 'file.txt';
         self::assertSame($abs, $this->fileSystem->normalizeFile($abs));
     }
 
@@ -175,15 +177,6 @@ final class FileSystemTest extends TestCase
         self::assertSame(
             $this->fileSystem->basePath . 'config' . \DIRECTORY_SEPARATOR . 'app.php',
             $this->fileSystem->atBase('config/app.php'),
-        );
-    }
-
-    #[TestDox('atBase убирает начальный разделитель у присоединяемого пути')]
-    public function testAtBaseTrimsLeadingSeparator(): void
-    {
-        self::assertSame(
-            $this->fileSystem->basePath . 'config' . \DIRECTORY_SEPARATOR . 'app.php',
-            $this->fileSystem->atBase('/config/app.php'),
         );
     }
 
@@ -230,6 +223,40 @@ final class FileSystemTest extends TestCase
         );
     }
 
+    #[TestDox('Метод at бросает исключение для пути вне базы')]
+    public function testAtExceptionOnOutside(): void
+    {
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "../../file.txt" is outside of the custom_dir.');
+        $this->fileSystem->at('custom_dir', '../../file.txt');
+    }
+
+    #[TestDox('Методы at* не допускают абсолютного пути')]
+    public function testAtAbsolutePathNotAllowed(): void
+    {
+        $this->expectException(FileSystemException::class);
+        $this->expectExceptionMessageIs('Absolute paths are not allowed in this context.');
+        $this->fileSystem->at('custom_dir', '/file.txt');
+    }
+
+    #[TestDox('Методы at* не допускают абсолютного пути')]
+    #[DataProvider('provideAtFamilyAbsolutePathNotAllowedCases')]
+    public function testAtFamilyAbsolutePathNotAllowed(string $method): void
+    {
+        $this->expectException(FileSystemException::class);
+        $this->expectExceptionMessageIs('Absolute paths are not allowed in this context.');
+        $this->fileSystem->{$method}('/file.txt');
+    }
+
+    public static function provideAtFamilyAbsolutePathNotAllowedCases(): iterable
+    {
+        yield ['atBase'];
+        yield ['atCache'];
+        yield ['atBootstrap'];
+        yield ['atLog'];
+        yield ['atVar'];
+    }
+
     #[TestDox('ensureDirectory создаёт директорию внутри basePath')]
     public function testEnsureDirectoryCreates(): void
     {
@@ -255,15 +282,15 @@ final class FileSystemTest extends TestCase
         self::assertDirectoryExists($dir);
     }
 
-    #[TestDox('ensureDirectory выбрасывает FileSystemException для пути вне basePath')]
+    #[TestDox('ensureDirectory выбрасывает исключение для пути вне basePath')]
     public function testEnsureDirectoryOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/tmp/outside'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/tmp/outside" is outside of the base path.');
         $this->fileSystem->ensureDirectory('/tmp/outside');
     }
 
-    #[TestDox('ensureDirectory выбрасывает FileSystemException при ошибке создания директории')]
+    #[TestDox('ensureDirectory выбрасывает при ошибке создания директории')]
     #[RunInSeparateProcess]
     public function testEnsureDirectoryMakeDirException(): void
     {
@@ -288,24 +315,25 @@ final class FileSystemTest extends TestCase
     #[TestDox('validatePath выбрасывает исключение для пути вне basePath')]
     public function testValidatePathOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/etc/passwd'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
         $this->fileSystem->validatePath('/etc/passwd');
     }
 
     #[TestDox('validatePath выбрасывает исключение для path traversal через ..')]
     public function testValidatePathTraversal(): void
     {
-        $this->expectException(FileSystemException::class);
+        $this->expectException(OutsideFileException::class);
         $path = $this->basePath . '/../../etc/passwd';
-        $this->expectExceptionMessageIs("Path must be in base path: '{$path}'.");
+        $this->expectExceptionMessageIs('Resolved "../../etc/passwd" is outside of the base path.');
         $this->fileSystem->validatePath($path);
     }
 
     #[TestDox('validatePath выбрасывает исключение для symlink, указывающего наружу')]
     public function testValidatePathSymlinkOutside(): void
     {
-        $outsideDir = sys_get_temp_dir() . '/fs_outside_' . bin2hex(random_bytes(8));
+        $atBase = '/fs_outside_' . bin2hex(random_bytes(8));
+        $outsideDir = sys_get_temp_dir() . $atBase;
         mkdir($outsideDir, 0o775, true);
         $outsideFile = $outsideDir . '/secret.txt';
         touch($outsideFile);
@@ -313,8 +341,8 @@ final class FileSystemTest extends TestCase
         $linkPath = $this->fileSystem->basePath . 'evil_link';
         symlink($outsideFile, $linkPath);
 
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Resolved '{$linkPath}' is outside of the base directory.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "evil_link" is outside of the base path.');
         $this->fileSystem->validatePath($linkPath);
 
         unlink($linkPath);
@@ -335,8 +363,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFile выбрасывает исключение при записи вне basePath')]
     public function testWriteFileOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/tmp/unauthorized.txt'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFile('/tmp/unauthorized.txt', 'data');
     }
 
@@ -363,8 +391,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('readFile выбрасывает исключение при чтении вне basePath')]
     public function testReadFileOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/etc/passwd'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
         $this->fileSystem->readFile('/etc/passwd');
     }
 
@@ -495,12 +523,11 @@ final class FileSystemTest extends TestCase
         self::assertTrue(true); // no exception
     }
 
-    #[TestDox('validatePath Выбрасывает исключение если передан пустой путь')]
+    #[TestDox('validatePath пустой путь считает допустимым')]
     public function testCleanPathCanNotBeEmpty(): void
     {
-        $this->expectExceptionMessageIs('Path cannot be empty.');
-        $this->expectException(FileSystemException::class);
         $this->fileSystem->validatePath('');
+        self::assertTrue(true); // no exception
     }
 
     #[TestDox('validatePath не даёт выйти за basePath через .. от вложенной директории')]
@@ -508,28 +535,31 @@ final class FileSystemTest extends TestCase
     {
         $deepDir = $this->fileSystem->basePath . 'sub';
         mkdir($deepDir, 0o775, true);
-        $path = $deepDir . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . '..';
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '{$path}'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "sub/../.." is outside of the base path.');
         $this->fileSystem->validatePath($deepDir . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . '..');
     }
 
-    #[TestDox('normalizeDir с пустой строкой возвращает basePath')]
+    #[TestDox('normalizeDir  пустой путь считает допустимым')]
     public function testNormalizeDirEmpty(): void
     {
         self::assertSame($this->fileSystem->basePath, $this->fileSystem->normalizeDir(''));
+        self::assertTrue(true); // no exception
     }
 
-    #[TestDox('normalizeFile с пустой строкой возвращает basePath')]
+    #[TestDox('normalizeFile с пустой строкой бросает исключение')]
     public function testNormalizeFileEmpty(): void
     {
+        $this->expectException(FileSystemException::class);
+        $this->expectExceptionMessageIs('Path cannot be empty.');
+
         self::assertSame($this->fileSystem->basePath, $this->fileSystem->normalizeFile(''));
     }
 
     #[TestDox('atBase с пустой строкой возвращает basePath')]
     public function testAtBaseEmpty(): void
     {
-        self::assertSame($this->fileSystem->basePath, $this->fileSystem->atBase(''));
+        self::assertSame(rtrim($this->fileSystem->basePath, \DIRECTORY_SEPARATOR), $this->fileSystem->atBase(''));
     }
 
     #[TestDox('writeFile с флагом FILE_APPEND дописывает в существующий файл')]
@@ -603,8 +633,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFileSafe выбрасывает исключение при записи вне basePath')]
     public function testWriteFileSafeOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/tmp/unauthorized.txt'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFileSafe('/tmp/unauthorized.txt', 'data');
     }
 
@@ -671,8 +701,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFileAppend выбрасывает исключение при добавлении вне basePath')]
     public function testWriteFileAppendOutsideBasePath(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Path must be in base path: '/tmp/unauthorized.txt'.");
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFileAppendSafe('/tmp/unauthorized.txt', 'data');
     }
 
@@ -731,6 +761,44 @@ final class FileSystemTest extends TestCase
         $this->fileSystem->writeFileAppendSafe($file, $binary1);
         $this->fileSystem->writeFileAppendSafe($file, $binary2);
         self::assertStringEqualsFile($file, "\x00\x01\x02\xFF\xFE");
+    }
+
+    #[TestDox('resolveLogicalPath логически нормализует допустимы путь')]
+    public function testResolveLogicalPath(): void
+    {
+        $expected = $this->fileSystem->basePath . 'test';
+        self::assertSame($expected, $this->fileSystem->resolveLogicalPath('test', $this->fileSystem->basePath));
+        $expected = rtrim($this->fileSystem->basePath, \DIRECTORY_SEPARATOR);
+        self::assertSame(
+            $expected,
+            $this->fileSystem->resolveLogicalPath($this->fileSystem->basePath, $this->fileSystem->basePath),
+        );
+    }
+
+    #[TestDox('resolveLogicalPath бросает исключение при недопустимом пути')]
+    public function testResolveLogicalPathException(): void
+    {
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
+        $this->fileSystem->resolveLogicalPath('../../test', $this->fileSystem->basePath);
+    }
+
+    #[TestDox('resolveLogicalBasePath логически нормализует допустимы путь')]
+    public function testResolveLogicalBasePath(): void
+    {
+        self::assertSame(
+            $this->fileSystem->basePath,
+            $this->fileSystem->resolveLogicalBasePath($this->fileSystem->basePath),
+        );
+        self::assertSame($this->fileSystem->basePath, $this->fileSystem->resolveLogicalBasePath(''));
+    }
+
+    #[TestDox('resolveLogicalPath бросает исключение при недопустимом пути')]
+    public function testResolveLogicalBasePathException(): void
+    {
+        $this->expectException(OutsideFileException::class);
+        $this->expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
+        $this->fileSystem->resolveLogicalBasePath('../../test');
     }
 
     private function cleanDir(string $path): void
