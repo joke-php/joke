@@ -6,6 +6,7 @@ namespace Vasoft\Joke\Support;
 
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Exceptions\FileSystemException;
+use Vasoft\Joke\Exceptions\OutsideFileException;
 
 /**
  * Утилитарный класс для нормализации и валидации файловых путей.
@@ -121,12 +122,13 @@ class FileSystem
      * @param non-empty-string $path путь к директории (относительный или абсолютный)
      *
      * @return non-empty-string абсолютный нормализованный путь к директории с завершающим разделителем
+     *
+     * @throws OutsideFileException если путь выходит за пределы basePath
+     * @throws FileSystemException  если путь пуст
      */
     public function normalizeDir(string $path): string
     {
-        if (!self::isAbsolute($path)) {
-            $path = $this->basePath . $path;
-        }
+        $path = $this->resolveLogicalPath($path);
 
         return rtrim($path, \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR;
     }
@@ -140,14 +142,17 @@ class FileSystem
      * @param non-empty-string $path путь к файлу (относительный или абсолютный)
      *
      * @return non-empty-string абсолютный нормализованный путь к файлу
+     *
+     * @throws OutsideFileException если путь выходит за пределы basePath
+     * @throws FileSystemException  если путь пуст
      */
     public function normalizeFile(string $path): string
     {
-        if (self::isAbsolute($path)) {
-            return $path;
+        if ('' === trim($path)) {
+            throw new FileSystemException('Path cannot be empty.');
         }
 
-        return $this->basePath . $path;
+        return $this->resolveLogicalPath($path);
     }
 
     /**
@@ -176,10 +181,13 @@ class FileSystem
      * @param non-empty-string $path относительный путь
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если передан абсолютный путь или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы basePath
      */
     public function atBase(string $path): string
     {
-        return $this->basePath . ltrim($path, \DIRECTORY_SEPARATOR);
+        return $this->at($this->basePath, $path);
     }
 
     /**
@@ -188,10 +196,13 @@ class FileSystem
      * @param non-empty-string $path относительный путь внутри var/cache/
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если передан абсолютный путь или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы cachePath
      */
     public function atCache(string $path): string
     {
-        return $this->cachePath . ltrim($path, \DIRECTORY_SEPARATOR);
+        return $this->at($this->cachePath, $path);
     }
 
     /**
@@ -200,10 +211,13 @@ class FileSystem
      * @param non-empty-string $path относительный путь внутри bootstrap/
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если передан абсолютный путь или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы bootstrapPath
      */
     public function atBootstrap(string $path): string
     {
-        return $this->bootstrapPath . ltrim($path, \DIRECTORY_SEPARATOR);
+        return $this->at($this->bootstrapPath, $path);
     }
 
     /**
@@ -212,10 +226,13 @@ class FileSystem
      * @param non-empty-string $path относительный путь внутри var/log/
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если передан абсолютный путь или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы logPath
      */
     public function atLog(string $path): string
     {
-        return $this->logPath . ltrim($path, \DIRECTORY_SEPARATOR);
+        return $this->at($this->logPath, $path);
     }
 
     /**
@@ -224,10 +241,13 @@ class FileSystem
      * @param non-empty-string $path относительный путь внутри var/
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если передан абсолютный путь или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы varPath
      */
     public function atVar(string $path): string
     {
-        return $this->varPath . ltrim($path, \DIRECTORY_SEPARATOR);
+        return $this->at($this->varPath, $path);
     }
 
     /**
@@ -237,10 +257,27 @@ class FileSystem
      * @param non-empty-string $path      относительный путь внутри указанной директории
      *
      * @return non-empty-string абсолютный путь
+     *
+     * @throws FileSystemException  если параметр $path является абсолютным путем или путь пуст
+     * @throws OutsideFileException если результирующий путь выходит за пределы basePath
      */
     public function at(string $directory, string $path): string
     {
-        return $this->normalizeDir($directory) . ltrim($path, \DIRECTORY_SEPARATOR);
+        if ($this->isAbsolute($path)) {
+            throw new FileSystemException('Absolute paths are not allowed in this context.');
+        }
+
+        $baseDir = $this->normalizeDir($directory);
+        $fullPath = $baseDir . ltrim($path, \DIRECTORY_SEPARATOR);
+
+        $cleaned = $this->cleanPath($fullPath);
+
+        if (!(str_starts_with($cleaned, $baseDir)
+            || rtrim($cleaned, \DIRECTORY_SEPARATOR) === rtrim($baseDir, \DIRECTORY_SEPARATOR))) {
+            throw new OutsideFileException($path, $directory);
+        }
+
+        return $cleaned;
     }
 
     /**
@@ -270,28 +307,126 @@ class FileSystem
      *    для защиты от symlink-атак.
      *
      * @param non-empty-string $path путь для проверки
+     * @param string           $base базовая директория для проверки (по умолчанию basePath)
      *
-     * @throws FileSystemException если путь выходит за пределы basePath
+     * @throws OutsideFileException если путь выходит за пределы указанной базы
+     * @throws FileSystemException  если путь пуст или база некорректна
      */
-    public function validatePath(string $path): void
+    public function validatePath(string $path, string $base = ''): void
     {
-        $path = trim($path);
-        if ('' === trim($path)) {
-            throw new FileSystemException('Path cannot be empty.');
+        $normalized = $this->resolvePath($path, $base);
+        $realPath = realpath($normalized);
+        $base = $this->resolveLogicalBasePath($base);
+        if (
+            false !== $realPath
+            && !(str_starts_with($realPath, $base)
+                || $realPath === $base
+                || $realPath === rtrim($base, \DIRECTORY_SEPARATOR))
+        ) {
+            throw new OutsideFileException($this->getPathForMessage($path), $this->getBasePathForMessage($base));
+        }
+    }
+
+    /**
+     * Разрешает и нормализует базовый путь для внутренних операций.
+     *
+     * Если передана пустая строка, используется basePath класса.
+     * Если передан относительный путь, он дополняется до basePath.
+     * Если передан абсолютный путь, проверяется его принадлежность к basePath.
+     *
+     * @param string $base путь для разрешения
+     *
+     * @return non-empty-string нормализованный абсолютный базовый путь
+     *
+     * @throws OutsideFileException если абсолютный путь выходит за пределы basePath
+     */
+    public function resolveLogicalBasePath(string $base = ''): string
+    {
+        $normalized = trim($base);
+        if ('' === $normalized) {
+            $normalized = $this->basePath;
+        } else {
+            if (!$this->isAbsolute($normalized)) {
+                $normalized = $this->cleanPath($this->basePath . $normalized);
+            }
+            if (!(str_starts_with($normalized, $this->basePath)
+                || rtrim($this->basePath, \DIRECTORY_SEPARATOR) === rtrim($normalized, \DIRECTORY_SEPARATOR))) {
+                throw new OutsideFileException($this->getPathForMessage($base), 'base path');
+            }
         }
 
-        if (!$this->isAbsolute($path)) {
-            $path = $this->basePath . $path;
+        return $normalized;
+    }
+
+    /**
+     * Внутренний метод для логического разрешения пути без физической проверки.
+     *
+     * @param non-empty-string $path путь для разрешения
+     * @param string           $base базовая директория
+     *
+     * @return non-empty-string нормализованный абсолютный путь
+     *
+     * @throws FileSystemException если базовый путь пуст
+     */
+    private function resolvePath(string $path, string $base = ''): string
+    {
+        $normalized = trim($path);
+        $base = $this->resolveLogicalBasePath($base);
+        if (!$this->isAbsolute($normalized)) {
+            $normalized = $base . $normalized;
         }
-        $normalized = $this->cleanPath($path);
-        $base = rtrim($this->basePath, \DIRECTORY_SEPARATOR);
-        if (!str_starts_with($normalized, $base)) {
-            throw new FileSystemException("Path must be in base path: '{$path}'.");
+
+        return $this->cleanPath($normalized);
+    }
+
+    /**
+     * Разрешает путь логически и проверяет его принадлежность к базовой директории.
+     *
+     * @param non-empty-string $path путь для разрешения
+     * @param string           $base базовая директория (по умолчанию basePath)
+     *
+     * @return non-empty-string нормализованный абсолютный путь
+     *
+     * @throws OutsideFileException если путь выходит за пределы базы
+     * @throws FileSystemException  если путь пуст
+     */
+    public function resolveLogicalPath(string $path, string $base = ''): string
+    {
+        $base = $this->resolveLogicalBasePath($base);
+        $normalized = $this->resolvePath($path, $base);
+        if (!(str_starts_with($normalized, $base)
+            || $normalized === $base
+            || $normalized === rtrim($base, \DIRECTORY_SEPARATOR))) {
+            throw new OutsideFileException($this->getPathForMessage($path), $this->getBasePathForMessage($base));
         }
-        $realPath = realpath($path);
-        if (false !== $realPath && !str_starts_with($realPath, $base)) {
-            throw new FileSystemException("Resolved '{$path}' is outside of the base directory.");
-        }
+
+        return $normalized;
+    }
+
+    /**
+     * Форматирует путь для вывода в сообщениях об ошибках (удаляет префикс basePath).
+     *
+     * @param string $path полный путь
+     *
+     * @return string путь относительно basePath или исходный путь, если он не начинается с basePath
+     */
+    public function getPathForMessage(string $path): string
+    {
+        return str_starts_with($path, $this->basePath) ? substr($path, strlen($this->basePath)) : $path;
+    }
+
+    /**
+     * Форматирует базовый путь для вывода в сообщениях об ошибках.
+     *
+     * @param string $path путь базы
+     *
+     * @return string человекочитаемое описание базы ('base path' или относительный путь)
+     */
+    private function getBasePathForMessage(string $path): string
+    {
+        $path = $this->getPathForMessage($path);
+
+        return '' === $path ? 'base path' : $path;
     }
 
     /**
@@ -340,6 +475,8 @@ class FileSystem
      * @param non-empty-string    $file путь к файлу (должен быть внутри basePath)
      * @param array<string,mixed> $vars переменные для передачи в контекст файла
      *
+     * @return mixed результат выполнения файла или false при неудаче
+     *
      * @throws FileSystemException если путь вне basePath
      */
     public function includeFile(string $file, array $vars = []): mixed
@@ -355,6 +492,8 @@ class FileSystem
      * @param non-empty-string    $file         путь к файлу (должен быть внутри basePath)
      * @param array<string,mixed> $vars         переменные для передачи в контекст файла
      * @param null|string         $errorMessage кастомное сообщение об ошибке
+     *
+     * @return mixed результат выполнения файла
      *
      * @throws FileSystemException если файл не найден или путь вне basePath
      */
@@ -372,6 +511,8 @@ class FileSystem
      * @param non-empty-string    $file путь к файлу (должен быть внутри basePath)
      * @param array<string,mixed> $vars переменные для передачи в контекст файла
      *
+     * @return mixed результат выполнения файла или false при неудаче
+     *
      * @throws FileSystemException если путь вне basePath
      */
     public function includeFileOnce(string $file, array $vars = []): mixed
@@ -388,6 +529,8 @@ class FileSystem
      * @param non-empty-string    $file         путь к файлу (должен быть внутри basePath)
      * @param array<string,mixed> $vars         переменные для передачи в контекст файла
      * @param null|string         $errorMessage кастомное сообщение об ошибке
+     *
+     * @return mixed результат выполнения файла
      *
      * @throws FileSystemException если файл не найден или путь вне basePath
      */
@@ -535,7 +678,7 @@ class FileSystem
      * Разрешает конструкции "." и "..", унифицирует разделители.
      * Используется для логической валидации путей в {@see validatePath()}.
      *
-     * @param non-empty-string $path абсолюный путь для очистки
+     * @param non-empty-string $path абсолютный путь для очистки
      *
      * @return non-empty-string нормализованный путь
      */
