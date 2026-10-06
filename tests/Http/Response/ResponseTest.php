@@ -41,12 +41,14 @@ final class ResponseTest extends TestCase
         $this->headerMock = $this->getFunctionMock('Vasoft\Joke\Http\Response', 'header');
     }
 
+    #[RunInSeparateProcess]
     public function testDefaultStatusIsOk(): void
     {
         $response = new HtmlResponse(self::$cookies);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
+    #[RunInSeparateProcess]
     public function testSetStatus(): void
     {
         $response = new HtmlResponse(self::$cookies);
@@ -64,6 +66,7 @@ final class ResponseTest extends TestCase
 
     #[TestDox('Не допускает наличие управляющих символов в значении заголовка')]
     #[DataProvider('provideExceptionOnControlCharactersInHeaderCases')]
+    #[RunInSeparateProcess]
     public function testExceptionOnControlCharactersInHeader(string $name, string $value, string $expected): void
     {
         $response = new HtmlResponse(self::$cookies);
@@ -75,6 +78,7 @@ final class ResponseTest extends TestCase
         $response->send();
     }
 
+    #[RunInSeparateProcess]
     public static function provideExceptionOnControlCharactersInHeaderCases(): iterable
     {
         yield [
@@ -137,6 +141,7 @@ final class ResponseTest extends TestCase
         self::assertSame('Hello, world!', $output);
     }
 
+    #[RunInSeparateProcess]
     public function testSendReturnsSelf(): void
     {
         $response = new HtmlResponse(self::$cookies);
