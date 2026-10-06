@@ -54,9 +54,9 @@ final class FileSystemTest extends TestCase
     #[TestDox('Конструктор выбрасывает ConfigException для несуществующего пути')]
     public function testConstructorThrowsForNonExistentPath(): void
     {
-        $this->expectException(ConfigException::class);
+        self::expectException(ConfigException::class);
         $path = $this->basePath . '/nonexistent';
-        $this->expectExceptionMessageIs("Path must be an existing directory: '{$path}'.");
+        self::expectExceptionMessageIs("Path must be an existing directory: '{$path}'.");
         new FileSystem($path);
     }
 
@@ -66,8 +66,8 @@ final class FileSystemTest extends TestCase
         $file = $this->basePath . '/file.txt';
         touch($file);
 
-        $this->expectException(ConfigException::class);
-        $this->expectExceptionMessageIs("Path must be an existing directory: '{$file}'.");
+        self::expectException(ConfigException::class);
+        self::expectExceptionMessageIs("Path must be an existing directory: '{$file}'.");
         new FileSystem($file);
     }
 
@@ -226,16 +226,16 @@ final class FileSystemTest extends TestCase
     #[TestDox('Метод at бросает исключение для пути вне базы')]
     public function testAtExceptionOnOutside(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "../../file.txt" is outside of the custom_dir.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "../../file.txt" is outside of the "custom_dir".');
         $this->fileSystem->at('custom_dir', '../../file.txt');
     }
 
     #[TestDox('Методы at* не допускают абсолютного пути')]
     public function testAtAbsolutePathNotAllowed(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs('Absolute paths are not allowed in this context.');
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Absolute paths are not allowed in this context.');
         $this->fileSystem->at('custom_dir', '/file.txt');
     }
 
@@ -243,8 +243,8 @@ final class FileSystemTest extends TestCase
     #[DataProvider('provideAtFamilyAbsolutePathNotAllowedCases')]
     public function testAtFamilyAbsolutePathNotAllowed(string $method): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs('Absolute paths are not allowed in this context.');
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Absolute paths are not allowed in this context.');
         $this->fileSystem->{$method}('/file.txt');
     }
 
@@ -285,8 +285,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('ensureDirectory выбрасывает исключение для пути вне basePath')]
     public function testEnsureDirectoryOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/tmp/outside" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/tmp/outside" is outside of the base path.');
         $this->fileSystem->ensureDirectory('/tmp/outside');
     }
 
@@ -299,8 +299,8 @@ final class FileSystemTest extends TestCase
         $isDir->expects(self::exactly(2))->willReturn(false);
         $mkDir = self::getFunctionMock('Vasoft\Joke\Support', 'mkdir');
         $mkDir->expects(self::exactly(1))->willReturn(false);
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Unable to create directory: '{$dir}'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Unable to create directory: '{$dir}'.");
         $this->fileSystem->ensureDirectory($dir);
     }
 
@@ -315,17 +315,17 @@ final class FileSystemTest extends TestCase
     #[TestDox('validatePath выбрасывает исключение для пути вне basePath')]
     public function testValidatePathOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
         $this->fileSystem->validatePath('/etc/passwd');
     }
 
     #[TestDox('validatePath выбрасывает исключение для path traversal через ..')]
     public function testValidatePathTraversal(): void
     {
-        $this->expectException(OutsideFileException::class);
+        self::expectException(OutsideFileException::class);
         $path = $this->basePath . '/../../etc/passwd';
-        $this->expectExceptionMessageIs('Resolved "../../etc/passwd" is outside of the base path.');
+        self::expectExceptionMessageIs('Resolved "../../etc/passwd" is outside of the base path.');
         $this->fileSystem->validatePath($path);
     }
 
@@ -341,8 +341,8 @@ final class FileSystemTest extends TestCase
         $linkPath = $this->fileSystem->basePath . 'evil_link';
         symlink($outsideFile, $linkPath);
 
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "evil_link" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "evil_link" is outside of the base path.');
         $this->fileSystem->validatePath($linkPath);
 
         unlink($linkPath);
@@ -363,8 +363,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFile выбрасывает исключение при записи вне basePath')]
     public function testWriteFileOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFile('/tmp/unauthorized.txt', 'data');
     }
 
@@ -382,17 +382,17 @@ final class FileSystemTest extends TestCase
     {
         $fileGetContents = self::getFunctionMock('Vasoft\Joke\Support', 'file_get_contents');
         $fileGetContents->expects(self::exactly(1))->willReturn(false);
-        $this->expectException(FileSystemException::class);
+        self::expectException(FileSystemException::class);
         $path = $this->fileSystem->basePath . 'nonexistent.txt';
-        $this->expectExceptionMessageIs("Failed to read file: \"{$path}\".");
+        self::expectExceptionMessageIs("Failed to read file: \"{$path}\".");
         $this->fileSystem->readFile($path);
     }
 
     #[TestDox('readFile выбрасывает исключение при чтении вне basePath')]
     public function testReadFileOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/etc/passwd" is outside of the base path.');
         $this->fileSystem->readFile('/etc/passwd');
     }
 
@@ -429,17 +429,17 @@ final class FileSystemTest extends TestCase
     #[TestDox('requireFile выбрасывает исключение для несуществующего файла')]
     public function testRequireFileNonExistent(): void
     {
-        $this->expectException(FileSystemException::class);
+        self::expectException(FileSystemException::class);
         $filename = $this->fileSystem->basePath . 'nonexistent.php';
-        $this->expectExceptionMessageIs("Unable to include file: '{$filename}'.");
+        self::expectExceptionMessageIs("Unable to include file: '{$filename}'.");
         $this->fileSystem->requireFile($filename);
     }
 
     #[TestDox('requireFile использует переданное сообщение об ошибке')]
     public function testRequireFileCustomMessage(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs('Custom error message');
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Custom error message');
         $this->fileSystem->requireFile(
             $this->fileSystem->basePath . 'nonexistent.php',
             errorMessage: 'Custom error message',
@@ -535,8 +535,8 @@ final class FileSystemTest extends TestCase
     {
         $deepDir = $this->fileSystem->basePath . 'sub';
         mkdir($deepDir, 0o775, true);
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "sub/../.." is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "sub/../.." is outside of the base path.');
         $this->fileSystem->validatePath($deepDir . \DIRECTORY_SEPARATOR . '..' . \DIRECTORY_SEPARATOR . '..');
     }
 
@@ -550,8 +550,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('normalizeFile с пустой строкой бросает исключение')]
     public function testNormalizeFileEmpty(): void
     {
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs('Path cannot be empty.');
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Path cannot be empty.');
 
         self::assertSame($this->fileSystem->basePath, $this->fileSystem->normalizeFile(''));
     }
@@ -586,7 +586,7 @@ final class FileSystemTest extends TestCase
     {
         $file = $this->fileSystem->basePath . 'safe.txt';
         self::expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs('FILE_APPEND flag is not supported by writeFileSafe().');
+        self::expectExceptionMessageIs('FILE_APPEND flag is not supported by writeFileSafe().');
         $this->fileSystem->writeFileSafe($file, 'hello world', FILE_APPEND);
     }
 
@@ -608,8 +608,8 @@ final class FileSystemTest extends TestCase
         $file = $this->fileSystem->basePath . 'some-file.txt';
         file_put_contents($file, 'original');
 
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Failed to write file: '{$file}/'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Failed to write file: '{$file}/'.");
         $this->fileSystem->writeFile($file . '/', 'data');
     }
 
@@ -623,8 +623,8 @@ final class FileSystemTest extends TestCase
         $file = $this->fileSystem->basePath . 'needle_wrong_safe.txt';
         file_put_contents($file, 'original');
 
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Failed to write file: '{$file}'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Failed to write file: '{$file}'.");
         $this->fileSystem->writeFileSafe($file, 'data');
 
         self::assertStringEqualsFile($file, 'original');
@@ -633,8 +633,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFileSafe выбрасывает исключение при записи вне basePath')]
     public function testWriteFileSafeOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFileSafe('/tmp/unauthorized.txt', 'data');
     }
 
@@ -701,8 +701,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('writeFileAppend выбрасывает исключение при добавлении вне basePath')]
     public function testWriteFileAppendOutsideBasePath(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "/tmp/unauthorized.txt" is outside of the base path.');
         $this->fileSystem->writeFileAppendSafe('/tmp/unauthorized.txt', 'data');
     }
 
@@ -713,8 +713,8 @@ final class FileSystemTest extends TestCase
         $fopen = self::getFunctionMock('Vasoft\Joke\Support', 'fopen');
         $fopen->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'open_fail.txt';
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Failed to open file for appending: '{$file}'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Failed to open file for appending: '{$file}'.");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -725,8 +725,8 @@ final class FileSystemTest extends TestCase
         $flock = self::getFunctionMock('Vasoft\Joke\Support', 'flock');
         $flock->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'lock_fail.txt';
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Failed to acquire lock on file: '{$file}'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Failed to acquire lock on file: '{$file}'.");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -737,8 +737,8 @@ final class FileSystemTest extends TestCase
         $fwrite = self::getFunctionMock('Vasoft\Joke\Support', 'fwrite');
         $fwrite->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'write_fail.txt';
-        $this->expectException(FileSystemException::class);
-        $this->expectExceptionMessageIs("Failed to write file: '{$file}'.");
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs("Failed to write file: '{$file}'.");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -778,8 +778,8 @@ final class FileSystemTest extends TestCase
     #[TestDox('resolveLogicalPath бросает исключение при недопустимом пути')]
     public function testResolveLogicalPathException(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
         $this->fileSystem->resolveLogicalPath('../../test', $this->fileSystem->basePath);
     }
 
@@ -796,9 +796,84 @@ final class FileSystemTest extends TestCase
     #[TestDox('resolveLogicalPath бросает исключение при недопустимом пути')]
     public function testResolveLogicalBasePathException(): void
     {
-        $this->expectException(OutsideFileException::class);
-        $this->expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
+        self::expectException(OutsideFileException::class);
+        self::expectExceptionMessageIs('Resolved "../../test" is outside of the base path.');
         $this->fileSystem->resolveLogicalBasePath('../../test');
+    }
+
+    #[TestDox('clearDir() рекурсивно удаляет каталог')]
+    public function testClearDirRemovesDirectoryTree(): void
+    {
+        $path = $this->fileSystem->atCache('test1/1_1');
+        $cleanPath = $this->fileSystem->atCache('test1');
+        $this->fileSystem->ensureDirectory($path);
+        $this->fileSystem->writeFile($path . 'example.log', '1');
+        $this->fileSystem->clearDir($cleanPath);
+        self::assertDirectoryDoesNotExist($path);
+        self::assertDirectoryExists($cleanPath);
+    }
+
+    #[TestDox('clearDir() рекурсивно удаляет каталог с основным')]
+    public function testClearDirRemovesDirectoryTreeWithRoot(): void
+    {
+        $path = $this->fileSystem->atCache('test2/1_1');
+        $cleanPath = $this->fileSystem->atCache('test2');
+        $this->fileSystem->ensureDirectory($path);
+        $this->fileSystem->writeFile($path . 'example.log', '1');
+        $this->fileSystem->clearDir($cleanPath, true);
+        self::assertDirectoryDoesNotExist($cleanPath);
+    }
+
+    #[TestDox('clearDir() исключение при попытке удалить базовый')]
+    public function testClearExceptionOnBase(): void
+    {
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Removing the base path root is not allowed via clearDir().');
+
+        $this->fileSystem->clearDir($this->fileSystem->basePath, true);
+    }
+
+    #[TestDox('clearDir() исключение при попытке чистить не каталог')]
+    public function testClearExceptionOnFile(): void
+    {
+        $path = $this->fileSystem->atCache('test2/1_1');
+        $this->fileSystem->ensureDirectory($path);
+        $this->fileSystem->writeFile($path . 'example.log', '1');
+
+
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Cannot clear non-existent directory: "var/cache/test2/1_1example.log".');
+
+        $this->fileSystem->clearDir($path . 'example.log');
+    }
+
+    #[TestDox('clearDir() останавливает выполнение на первой ошибке')]
+    #[RunInSeparateProcess]
+    public function testClearBreakOnFail(): void
+    {
+        $rmDir = self::getFunctionMock('Vasoft\Joke\Support', 'rmdir');
+        $rmDir->expects(self::exactly(1))->willReturn(false);
+
+        $cleanPath = $this->fileSystem->atCache('test1_');
+        $path = $this->fileSystem->atCache('test1_/1_0');
+        $this->fileSystem->ensureDirectory($path);
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Failed to delete item: "var/cache/test1_/1_0".');
+        $this->fileSystem->clearDir($cleanPath);
+    }
+
+    #[TestDox('clearDir() выбрасывает исключение при ошибки удаления корня')]
+    #[RunInSeparateProcess]
+    public function testClearExceptionFail(): void
+    {
+        $rmDir = self::getFunctionMock('Vasoft\Joke\Support', 'rmdir');
+        $rmDir->expects(self::exactly(1))->willReturn(false);
+
+        $cleanPath = $this->fileSystem->atCache('test3_');
+        $this->fileSystem->ensureDirectory($cleanPath);
+        self::expectException(FileSystemException::class);
+        self::expectExceptionMessageIs('Failed to remove directory: "var/cache/test3_".');
+        $this->fileSystem->clearDir($cleanPath, true);
     }
 
     private function cleanDir(string $path): void

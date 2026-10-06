@@ -274,7 +274,9 @@ class FileSystem
 
         if (!(str_starts_with($cleaned, $baseDir)
             || rtrim($cleaned, \DIRECTORY_SEPARATOR) === rtrim($baseDir, \DIRECTORY_SEPARATOR))) {
-            throw new OutsideFileException($path, $directory);
+            $name = $this->getBasePathForMessage($directory);
+
+            throw new OutsideFileException($path, $name);
         }
 
         return $cleaned;
@@ -426,7 +428,7 @@ class FileSystem
     {
         $path = $this->getPathForMessage($path);
 
-        return '' === $path ? 'base path' : $path;
+        return '' === $path ? 'base path' : '"' . $path . '"';
     }
 
     /**
@@ -706,5 +708,52 @@ class FileSystem
         $result = implode(\DIRECTORY_SEPARATOR, $absolutes);
 
         return \DIRECTORY_SEPARATOR . $result;
+    }
+
+    /**
+     * Очищает содержимое директории.
+     *
+     * Рекурсивно удаляет все файлы и поддиректории внутри указанного пути.
+     * Перед выполнением проверяет, что путь находится внутри basePath.
+     *
+     * @param non-empty-string $path       Путь к директории (относительный или абсолютный)
+     * @param bool             $removeRoot Удалять ли саму директорию после очистки содержимого
+     *
+     * @throws FileSystemException  если путь пуст, директория не существует,
+     *                              попытка удаления корневого basePath или ошибка при удалении
+     * @throws OutsideFileException если путь выходит за пределы basePath
+     */
+    public function clearDir(string $path, bool $removeRoot = false): void
+    {
+        $normalized = $this->resolveLogicalPath($path);
+
+        if ($removeRoot && rtrim($normalized, \DIRECTORY_SEPARATOR) === rtrim($this->basePath, \DIRECTORY_SEPARATOR)) {
+            throw new FileSystemException('Removing the base path root is not allowed via clearDir().');
+        }
+
+        if (!is_dir($normalized)) {
+            $name = $this->getPathForMessage($path);
+
+            throw new FileSystemException("Cannot clear non-existent directory: \"{$name}\".");
+        }
+
+        $items = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($normalized, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
+        foreach ($items as $item) {
+            $pathname = $item->getPathname();
+            $success = $item->isDir() ? @rmdir($pathname) : @unlink($pathname);
+            if (!$success) {
+                $name = $this->getPathForMessage($pathname);
+
+                throw new FileSystemException("Failed to delete item: \"{$name}\".");
+            }
+        }
+        if ($removeRoot && !@rmdir($normalized)) {
+            $name = $this->getPathForMessage($path);
+
+            throw new FileSystemException("Failed to remove directory: \"{$name}\".");
+        }
     }
 }
