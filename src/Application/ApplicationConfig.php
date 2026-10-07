@@ -4,9 +4,10 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Application;
 
+use Vasoft\Joke\Cache\FileCache;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
-use Vasoft\Joke\Http\Response\HtmlResponse;
+use Vasoft\Joke\Contract\Cache\CacheInterface;
 use Vasoft\Joke\Http\Response\Response;
 
 class ApplicationConfig extends AbstractConfig
@@ -22,6 +23,12 @@ class ApplicationConfig extends AbstractConfig
      * @var array<string,null|class-string<Response>>
      */
     private array $groupResponseClass = [];
+    /**
+     * Тип кеша.
+     *
+     * @var class-string<CacheInterface>
+     */
+    public private(set) string $cacheClass = FileCache::class;
 
     /**
      * Устанавливает путь к файлу маршрутов абсолютный или относительно корня проекта.
@@ -116,5 +123,24 @@ class ApplicationConfig extends AbstractConfig
     public function getGroupResponseClass(string $groupName): ?string
     {
         return $this->groupResponseClass[$groupName] ?? null;
+    }
+
+    /**
+     * Устанавливает тип кеша.
+     *
+     * По умолчанию используется файловый кеш.
+     *
+     * @param class-string<CacheInterface> $cacheClass Класс реализующий {@see CacheInterface}
+     *
+     * @return $this
+     *
+     * @throws ConfigException
+     */
+    public function setCacheClass(string $cacheClass): static
+    {
+        $this->guard();
+        $this->cacheClass = $cacheClass;
+
+        return $this;
     }
 }

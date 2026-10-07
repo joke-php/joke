@@ -13,27 +13,41 @@ use Vasoft\Joke\Tests\Fixtures\Controllers\SingleController;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Auth\AuthMiddleware;
+use Vasoft\Joke\Cache\CacheManager;
 
 /**
  * @var Router $router
  */
 $router->get(
     '/',
-    static fn(ResponseBuilder $builder) => $builder->makeDefault()
-        ->setBody(
-            <<<'HTML'
-                <ul>
-                    <li><a href="/name/Alex">Hi Alex</a> Текстовый ответ. Имя можно менять</li>
-                    <li><a href="/json/Alex">Hi Alex</a> Json ответ. Имя можно менять</li>
-                    <li><a href="/invoke/property">__Invoke</a></li>
-                    <li><a href="/shop">Список товаров</a></li>
-                    <li><a href="/shop/an">Товары имеющие "an" в названии</a></li>
-                    <li><a href="/shop/info">Вызов статического метода как замыкания</a></li>
-                    <li><a href="/shop/infoNew">Вызов статического метода переданного строкой</a></li>
-                    <li><a href="/personal">Личный кабинет</a></li>
-                </ul>
-                HTML,
-        ),
+    static function (ResponseBuilder $builder, CacheManager $cacheManager) {
+        $cache = $cacheManager->build('index');
+        if ($cache->has('example1')) {
+            $cached = $cache->get('example1');
+        } else {
+            $cached = '<p>Этот блок закеширован на 2 минуты в ' . date('H:i:s') . '</p>';
+            $cache->set('example1', $cached, 120);
+        }
+
+        $now = date('d.m.Y H:i:s');
+
+        return $builder->makeDefault()
+            ->setBody(
+                <<<HTML
+                    <ul>
+                        <li><a href="/name/Alex">Hi Alex</a> Текстовый ответ. Имя можно менять</li>
+                        <li><a href="/json/Alex">Hi Alex</a> Json ответ. Имя можно менять</li>
+                        <li><a href="/invoke/property">__Invoke</a></li>
+                        <li><a href="/shop">Список товаров</a></li>
+                        <li><a href="/shop/an">Товары имеющие "an" в названии</a></li>
+                        <li><a href="/shop/info">Вызов статического метода как замыкания</a></li>
+                        <li><a href="/shop/infoNew">Вызов статического метода переданного строкой</a></li>
+                        <li><a href="/personal">Личный кабинет</a></li>
+                    </ul>
+                    {$cached} <p>Страница получена {$now}</p>
+                    HTML,
+            );
+    },
 );
 $router->get('/personal/login', [Personal::class, 'login']);
 $router->post('/personal/login', [Personal::class, 'checkLogin']);
