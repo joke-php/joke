@@ -7,6 +7,7 @@ namespace Vasoft\Joke\Application;
 use Vasoft\Joke\Auth\AuthConfig;
 use Vasoft\Joke\Auth\AuthService;
 use Vasoft\Joke\Auth\Rights\RightsChecker;
+use Vasoft\Joke\Cache\CacheManager;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
@@ -40,6 +41,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
         $this->serviceContainer->registerSingleton(CsrfTokenManager::class, CsrfTokenManager::class);
         $this->serviceContainer->registerSingleton(AuthService::class, AuthService::class);
         $this->serviceContainer->registerSingleton(RightsChecker::class, RightsChecker::class);
+        $this->serviceContainer->registerSingleton(CacheManager::class, CacheManager::class);
     }
 
     public function boot(): void
@@ -64,6 +66,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             ResponseBuilder::class,
             AuthService::class,
             RightsChecker::class,
+            CacheManager::class,
         ];
     }
 

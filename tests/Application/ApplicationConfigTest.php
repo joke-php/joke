@@ -8,6 +8,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Application\ApplicationConfig;
 use PHPUnit\Framework\TestCase;
+use Vasoft\Joke\Cache\FileCache;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Http\Response\HtmlPageResponse;
 use Vasoft\Joke\Http\Response\HtmlResponse;
@@ -33,6 +34,7 @@ final class ApplicationConfigTest extends TestCase
     {
         yield ['setFileRoutes', 'file.php'];
         yield ['setResponseClass', null];
+        yield ['setCacheClass', FileCache::class];
     }
 
     #[DataProvider('provideSetAndGetCases')]
@@ -59,6 +61,17 @@ final class ApplicationConfigTest extends TestCase
         self::assertSame(HtmlPageResponse::class, $config->getGroupResponseClass('web'));
         self::assertSame(JsonResponse::class, $config->getGroupResponseClass('api'));
         self::assertNull($config->getGroupResponseClass('unknown'));
+    }
+
+    #[TestDox('Устанавливает тип кеширования по умолчанию файловый кеш')]
+    public function testDefaultCacheTypeAndSet(): void
+    {
+        $config = new ApplicationConfig();
+        self::assertSame(FileCache::class, $config->cacheClass);
+        // Конфиг не проверяет тип
+        $config
+            ->setCacheClass(HtmlPageResponse::class);
+        self::assertSame(HtmlPageResponse::class, $config->cacheClass);
     }
 
     #[TestDox('Пустую строку преобразует в null')]

@@ -90,6 +90,7 @@ Joke следует принципу минимализма и модульно�
     - [Маршрутизация](./base/routing.md)
     - [Middleware](./base/middleware.md)
     - [Аутентификация и авторизация](./base/authentication.md)
+    - [Кеширование](./base/cache.md)
     - [Система логирования](./base/logging.md)
 - Детали
     - [Реализованные middleware](./detail/middleware.md)
@@ -100,6 +101,7 @@ Joke следует принципу минимализма и модульно�
     - [Работа с HTTP Cookie](./detail/cookie.md)
     - [HtmlPageResponse: HTML-ответы в Joke](./detail/html-response.md)
     - [Файловая система](./detail/filesystem.md)
+    - [Система кеширования](./detail/cache-system.md)
 - Скелетоны
     - [Минимальный скелетон](./skeleton/minimal.md)
 - Обновление версий

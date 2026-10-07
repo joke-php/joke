@@ -86,7 +86,7 @@ final class FileRelatedCacheTest extends TestCase
     private function ensureDir(): void
     {
         $this->basePath = sys_get_temp_dir() . '/joke-test-cache-' . uniqid() . '/';
-        $this->cachePath = '/test-cache/';
+        $this->cachePath = 'test-cache/';
         mkdir($this->basePath, 0o755, true);
         $this->fs = new FileSystem($this->basePath);
         $this->fs->ensureDirectory($this->fs->atCache($this->cachePath));
