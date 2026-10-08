@@ -134,12 +134,12 @@ final class CorsMiddlewareTest extends TestCase
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayNotHasKey('access-control-expose-headers', $headers);
+        self::assertArrayNotHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::FORBIDDEN, $response->status);
     }
 
@@ -158,12 +158,12 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayNotHasKey('access-control-expose-headers', $headers);
+        self::assertArrayNotHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::FORBIDDEN, $response->status);
     }
 
@@ -202,13 +202,13 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('*', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('*', $headers['access-control-allow-origin']);
+        self::assertArrayNotHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayHasKey('access-control-allow-methods', $headers);
+        self::assertArrayHasKey('access-control-expose-headers', $headers);
+        self::assertArrayHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -230,14 +230,14 @@ final class CorsMiddlewareTest extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('https://example.com', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayHasKey('Vary', $headers);
-        self::assertArrayHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('https://example.com', $headers['access-control-allow-origin']);
+        self::assertArrayHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayHasKey('vary', $headers);
+        self::assertArrayHasKey('access-control-allow-methods', $headers);
+        self::assertArrayHasKey('access-control-expose-headers', $headers);
+        self::assertArrayHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -261,8 +261,7 @@ final class CorsMiddlewareTest extends TestCase
             ->handle($request, $this->defaultRouteHandler(...));
 
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Headers', $headers);
-        self::assertSame('example-header, example-next', $headers['Access-Control-Allow-Headers']);
+        self::assertSame('example-header, example-next', $response->headers->get('access-control-allow-headers'));
     }
 
     #[TestDox('При allowCredentials=true и * в допустимых, но нет запрошенных то заголовок не возвращается')]
@@ -303,9 +302,7 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandlerWithVary(...));
 
-        $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Vary', $headers);
-        self::assertSame('Example1, Example2, Origin', $headers['Vary']);
+        self::assertSame('Example1, Example2, Origin', $response->headers->get('vary'));
     }
 
     public function testCorsAllowOriginAllowPreflightHeadersInvalid(): void
@@ -322,12 +319,12 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayNotHasKey('access-control-expose-headers', $headers);
+        self::assertArrayNotHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::FORBIDDEN, $response->status);
     }
 
@@ -347,7 +344,7 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
     }
 
     public function testCorsNotAllowedMethod(): void
@@ -364,12 +361,12 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayNotHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-credentials', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayNotHasKey('access-control-expose-headers', $headers);
+        self::assertArrayNotHasKey('access-control-max-age', $headers);
+        self::assertArrayNotHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::METHOD_NOT_ALLOWED, $response->status);
     }
 
@@ -385,11 +382,11 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('access-control-allow-methods', $headers);
+        self::assertArrayHasKey('access-control-expose-headers', $headers);
+        self::assertArrayHasKey('access-control-max-age', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -404,11 +401,11 @@ final class CorsMiddlewareTest extends TestCase
         $response = new CorsMiddleware($config, self::$builder)
             ->handle($request, $this->defaultRouteHandler(...));
         $headers = $response->headers->getAll();
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayNotHasKey('Access-Control-Expose-Headers', $headers);
-        self::assertArrayNotHasKey('Access-Control-Max-Age', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayNotHasKey('access-control-expose-headers', $headers);
+        self::assertArrayNotHasKey('access-control-max-age', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -459,8 +456,8 @@ final class CorsMiddlewareTest extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -486,8 +483,8 @@ final class CorsMiddlewareTest extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -513,8 +510,8 @@ final class CorsMiddlewareTest extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 }

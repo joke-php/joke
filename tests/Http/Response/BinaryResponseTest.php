@@ -48,9 +48,9 @@ final class BinaryResponseTest extends TestCase
         ob_end_clean();
         self::assertSame(
             [
-                'Content-Type' => 'application/test',
-                'Content-Length' => 0,
-                'Content-Disposition' => 'attachment; filename=""',
+                'content-type' => 'application/test',
+                'content-length' => 0,
+                'content-disposition' => 'attachment; filename=""',
             ],
             $instance->sentHeaders,
         );
@@ -68,9 +68,9 @@ final class BinaryResponseTest extends TestCase
         ob_end_clean();
         self::assertSame(
             [
-                'Content-Type' => 'application/test',
-                'Content-Length' => $length,
-                'Content-Disposition' => 'attachment; filename="' . $baseName . '"',
+                'content-type' => 'application/test',
+                'content-length' => $length,
+                'content-disposition' => 'attachment; filename="' . $baseName . '"',
             ],
             $instance->sentHeaders,
         );
@@ -110,9 +110,9 @@ final class BinaryResponseTest extends TestCase
         ob_end_clean();
         self::assertSame(
             [
-                'Content-Type' => 'application/test',
-                'Content-Length' => $length,
-                'Content-Disposition' => 'attachment; filename="base.pdf"',
+                'content-type' => 'application/test',
+                'content-length' => $length,
+                'content-disposition' => 'attachment; filename="base.pdf"',
             ],
             $instance->sentHeaders,
         );
@@ -130,9 +130,9 @@ final class BinaryResponseTest extends TestCase
         ob_end_clean();
         self::assertSame(
             [
-                'Content-Type' => 'application/test',
-                'Content-Length' => 4,
-                'Content-Disposition' => 'attachment; filename="' . $baseName . '"',
+                'content-type' => 'application/test',
+                'content-length' => 4,
+                'content-disposition' => 'attachment; filename="' . $baseName . '"',
             ],
             $instance->sentHeaders,
         );
@@ -158,9 +158,9 @@ final class BinaryResponseTest extends TestCase
         ob_end_clean();
         self::assertSame(
             [
-                'Content-Type' => 'application/test',
-                'Content-Length' => 4,
-                'Content-Disposition' => 'attachment; filename="test.pdf"',
+                'content-type' => 'application/test',
+                'content-length' => 4,
+                'content-disposition' => 'attachment; filename="test.pdf"',
             ],
             $instance->sentHeaders,
         );

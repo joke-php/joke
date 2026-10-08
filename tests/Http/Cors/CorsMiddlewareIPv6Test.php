@@ -83,9 +83,9 @@ final class CorsMiddlewareIPv6Test extends TestCase
         $headers = $response->headers->getAll();
 
         // Same-origin запрос - CORS-заголовки не должны добавляться
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayNotHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayNotHasKey('access-control-allow-methods', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -108,8 +108,8 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -132,8 +132,8 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayNotHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayNotHasKey('access-control-allow-origin', $headers);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -178,9 +178,9 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('http://[::1]:9000', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('http://[::1]:9000', $headers['access-control-allow-origin']);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -206,10 +206,10 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('http://[::1]:9000', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayHasKey('Access-Control-Allow-Methods', $headers);
-        self::assertArrayHasKey('Access-Control-Max-Age', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('http://[::1]:9000', $headers['access-control-allow-origin']);
+        self::assertArrayHasKey('access-control-allow-methods', $headers);
+        self::assertArrayHasKey('access-control-max-age', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -234,9 +234,9 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('*', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayHasKey('Route-Executed', $headers);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('*', $headers['access-control-allow-origin']);
+        self::assertArrayHasKey('route-executed', $headers);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 
@@ -262,12 +262,12 @@ final class CorsMiddlewareIPv6Test extends TestCase
 
         $headers = $response->headers->getAll();
 
-        self::assertArrayHasKey('Access-Control-Allow-Origin', $headers);
-        self::assertSame('http://[::1]:9000', $headers['Access-Control-Allow-Origin']);
-        self::assertArrayHasKey('Access-Control-Allow-Credentials', $headers);
-        self::assertSame('true', $headers['Access-Control-Allow-Credentials']);
-        self::assertArrayHasKey('Vary', $headers);
-        self::assertStringContainsString('Origin', $headers['Vary']);
+        self::assertArrayHasKey('access-control-allow-origin', $headers);
+        self::assertSame('http://[::1]:9000', $headers['access-control-allow-origin']);
+        self::assertArrayHasKey('access-control-allow-credentials', $headers);
+        self::assertSame('true', $headers['access-control-allow-credentials']);
+        self::assertArrayHasKey('vary', $headers);
+        self::assertStringContainsString('Origin', $headers['vary']);
         self::assertSame(ResponseStatus::OK, $response->status);
     }
 }

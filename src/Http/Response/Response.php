@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Http\Response;
 
 use Vasoft\Joke\Collections\HeadersCollection;
+use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Http\Exceptions\HttpException;
 
@@ -89,11 +90,12 @@ abstract class Response
      */
     protected function sendHeaders(): void
     {
+        try {
+            $this->headers->sanitize();
+        } catch (JokeException $e) {
+            throw new HttpException($e->getMessage(), previous: $e);
+        }
         foreach ($this->headers->getAll() as $name => $value) {
-            if ('' === (string) $value) {
-                continue;
-            }
-            $this->assertValidHeader($name, (string) $value);
             header(sprintf('%s: %s', $name, $value));
         }
 

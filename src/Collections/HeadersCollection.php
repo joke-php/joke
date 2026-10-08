@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Collections;
 
+use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Exceptions\Property\MissingPropertyException;
 
 /**
@@ -104,5 +105,58 @@ class HeadersCollection extends PropsCollection
     public function getOrFail(string $key): array|bool|float|int|string|null
     {
         return parent::getOrFail(strtolower($key));
+    }
+
+    /**
+     *  Проверяет и нормализует все заголовки в коллекции.
+     *
+     *  Выполняет следующие действия для каждого заголовка:
+     *  1. Удаляет ведущие и конечные пробельные символы из значения.
+     *  2. Удаляет заголовок, если после обрезки значение стало пустым.
+     *  3. Проверяет имя и значение на соответствие стандартам RFC 7230/5322.
+     *
+     * @throws JokeException если имя заголовка содержит недопустимые символы
+     *                       или значение содержит управляющие символы (CTL)
+     */
+    public function sanitize(): void
+    {
+        foreach ($this->props as $key => &$value) {
+            $value = trim((string) $value);
+            if ('' === $value) {
+                unset($this->props[$key]);
+            }
+            $this->assertValidHeader($key, $value);
+        }
+    }
+
+    /**
+     * Проверяет корректность имени и значения HTTP-заголовка.
+     *
+     * Имя должно состоять только из token-символов (tchar по RFC 7230),
+     * значение не должно содержать управляющих символов.
+     *
+     * @throws JokeException если не корректное значение или имя заголовка
+     */
+    protected function assertValidHeader(string $name, string $value): void
+    {
+        if (preg_match('/[^a-zA-Z0-9!#$%&\'*+\-.^_`|~]/', $name)) {
+            throw new JokeException(sprintf('Invalid header name "%s": contains invalid characters.', trim($name)));
+        }
+
+        $this->assertNoControlCharacters($value, $name);
+    }
+
+    /**
+     * Запрещает управляющие символы (CTL) в значении заголовка.
+     *
+     * HTAB (\t) разрешён: RFC 7230 допускает SP и HTAB внутри field-value.
+     *
+     * @throws JokeException если не корректное значение заголовка
+     */
+    protected function assertNoControlCharacters(string $value, string $context = 'header'): void
+    {
+        if (preg_match('/[\x00-\x08\x0A-\x1F\x7F]/', $value)) {
+            throw new JokeException(sprintf('Invalid "%s" header value: contains control characters.', $context));
+        }
     }
 }
