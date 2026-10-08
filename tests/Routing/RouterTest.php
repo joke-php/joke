@@ -86,8 +86,8 @@ final class RouterTest extends TestCase
 
 
         self::assertSame([
-            'Content-Type' => 'text/html',
-            'Allow' => 'GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS',
+            'content-type' => 'text/html',
+            'allow' => 'GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS',
         ], $request->headers->getAll());
     }
 

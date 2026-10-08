@@ -112,7 +112,7 @@ final class RedirectResponseTest extends TestCase
         $response = new RedirectResponse(self::$cookies, '/login');
         $response->send();
 
-        $expected = ['Location: /login', 'HTTP/1.1 302 Found'];
+        $expected = ['location: /login', 'HTTP/1.1 302 Found'];
         sort($headers);
         sort($expected);
 

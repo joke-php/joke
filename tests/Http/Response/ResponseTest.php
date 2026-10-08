@@ -61,7 +61,7 @@ final class ResponseTest extends TestCase
     {
         $response = new HtmlResponse(self::$cookies);
         self::assertInstanceOf(HeadersCollection::class, $response->headers);
-        self::assertSame(['Content-Type' => 'text/html'], $response->headers->getAll());
+        self::assertSame(['content-type' => 'text/html'], $response->headers->getAll());
     }
 
     #[TestDox('Не допускает наличие управляющих символов в значении заголовка')]
@@ -72,7 +72,7 @@ final class ResponseTest extends TestCase
         $response = new HtmlResponse(self::$cookies);
         $response->headers->set($name, $value);
 
-        $this->headerMock->expects(self::once());
+        $this->headerMock->expects(self::never());
         self::expectException(HttpException::class);
         self::expectExceptionMessageIs($expected);
         $response->send();
@@ -84,12 +84,12 @@ final class ResponseTest extends TestCase
         yield [
             "X-Custom: value\r\n",
             'test-value',
-            'Invalid header name "X-Custom: value": contains invalid characters.',
+            'Invalid header name "x-custom: value": contains invalid characters.',
         ];
         yield [
             'X-Custom',
             "test-value\r\nTest: check",
-            'Invalid "X-Custom" header value: contains control characters.',
+            'Invalid "x-custom" header value: contains control characters.',
         ];
     }
 
@@ -128,9 +128,9 @@ final class ResponseTest extends TestCase
         $output = ob_get_clean();
 
         $expectedHeaders = [
-            'Content-Type: text/html',
+            'content-type: text/html',
             'HTTP/1.1 200 OK',
-            'X-Custom: test-value',
+            'x-custom: test-value',
         ];
 
         sort($headerParams);

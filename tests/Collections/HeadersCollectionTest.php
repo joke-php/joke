@@ -6,9 +6,11 @@ namespace Vasoft\Joke\Tests\Collections;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Collections\HeadersCollection;
 use PHPUnit\Framework\TestCase;
+use Vasoft\Joke\Exceptions\JokeException;
 
 /**
  * @internal
@@ -85,7 +87,40 @@ final class HeadersCollectionTest extends TestCase
     public static function provideSetContentTypeCases(): iterable
     {
         return [
-            ['Content-Type', 'application/json', 'contentType'],
+            ['content-type', 'application/json', 'contentType'],
         ];
+    }
+
+    #[TestDox('Не допускает наличие управляющих символов в значении заголовка')]
+    #[DataProvider('provideSanitizeCollectionCases')]
+    #[RunInSeparateProcess]
+    public function testSanitizeCollection(array $props, string $expected): void
+    {
+        $collection = new HeadersCollection($props);
+        self::expectException(JokeException::class);
+        self::expectExceptionMessageIs($expected);
+        $collection->sanitize();
+    }
+
+    #[RunInSeparateProcess]
+    public static function provideSanitizeCollectionCases(): iterable
+    {
+        yield [
+            ["X-Custom: value\r\n" => 'test-value'],
+            'Invalid header name "x-custom: value": contains invalid characters.',
+        ];
+        yield [
+            ['X-Custom' => "test-value\r\nTest: check"],
+            'Invalid "x-custom" header value: contains control characters.',
+        ];
+    }
+
+    #[TestDox('Sanitize нормализует значения')]
+    public function testSanitizeNormalizeValues(): void
+    {
+        $collection = new HeadersCollection(['X-test' => " Value\r ", 'x-custom' => 1]);
+        $collection->sanitize();
+        self::assertSame('Value', $collection->get('x-test'));
+        self::assertSame('1', $collection->get('x-custom'));
     }
 }

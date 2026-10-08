@@ -346,7 +346,7 @@ class ReadonlyPropsCollection
      *
      * @return array<string,mixed>
      */
-    protected static function normalizeArrayKeys(array $array): array
+    protected function normalizeArrayKeys(array $array): array
     {
         $result = [];
         foreach ($array as $key => $value) {

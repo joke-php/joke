@@ -149,8 +149,8 @@ final class CsrfTokenManagerTest extends TestCase
         $headers = $response->headers->getAll();
         self::assertNotSame($oldToken, $newToken);
         self::assertSame($newToken, $this->getRequest->session->get(CsrfTokenManager::CSRF_TOKEN_NAME, ''));
-        self::assertArrayHasKey('X-Csrf-Token', $headers);
-        self::assertSame($newToken, $headers['X-Csrf-Token']);
+        self::assertArrayHasKey('x-csrf-token', $headers);
+        self::assertSame($newToken, $headers['x-csrf-token']);
         self::assertSame(64, strlen($newToken));
     }
 
@@ -161,8 +161,8 @@ final class CsrfTokenManagerTest extends TestCase
         $this->tokenManager->invalidate($this->getRequest, $response);
         $headers = $response->headers->getAll();
         self::assertNotSame($oldToken, $this->getRequest->session->get(CsrfTokenManager::CSRF_TOKEN_NAME, ''));
-        self::assertArrayHasKey('X-Csrf-Token', $headers);
-        self::assertNotSame($oldToken, $headers['X-Csrf-Token']);
+        self::assertArrayHasKey('x-csrf-token', $headers);
+        self::assertNotSame($oldToken, $headers['x-csrf-token']);
     }
 
     public function testAttach(): void
@@ -172,8 +172,8 @@ final class CsrfTokenManagerTest extends TestCase
         $this->tokenManager->attach($this->getRequest, $response);
 
         $headers = $response->headers->getAll();
-        self::assertArrayHasKey('X-Csrf-Token', $headers);
-        self::assertSame($token, $headers['X-Csrf-Token']);
+        self::assertArrayHasKey('x-csrf-token', $headers);
+        self::assertSame($token, $headers['x-csrf-token']);
     }
 
     public function testAttachInCookie(): void
