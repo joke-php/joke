@@ -109,21 +109,6 @@ abstract class Response
     }
 
     /**
-     * Проверяет корректность имени и значения HTTP-заголовка.
-     *
-     * Имя должно состоять только из token-символов (tchar по RFC 7230),
-     * значение не должно содержать управляющих символов.
-     */
-    private function assertValidHeader(string $name, string $value): void
-    {
-        if (preg_match('/[^a-zA-Z0-9!#$%&\'*+\-.^_`|~]/', $name)) {
-            throw new HttpException(sprintf('Invalid header name "%s": contains invalid characters.', trim($name)));
-        }
-
-        $this->assertNoControlCharacters($value, $name);
-    }
-
-    /**
      * Запрещает управляющие символы (CTL) в значении заголовка.
      *
      * HTAB (\t) разрешён: RFC 7230 допускает SP и HTAB внутри field-value.

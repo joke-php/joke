@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Collections;
 
+use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\RunInSeparateProcess;
@@ -11,6 +12,7 @@ use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Collections\HeadersCollection;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Exceptions\JokeException;
+use Vasoft\Joke\Exceptions\Property\MissingPropertyException;
 
 /**
  * @internal
@@ -21,6 +23,8 @@ use Vasoft\Joke\Exceptions\JokeException;
 #[CoversClass(HeadersCollection::class)]
 final class HeadersCollectionTest extends TestCase
 {
+    use PHPMock;
+
     #[TestDox('Set приводит имя заголовка к нижнему регистру')]
     public function testSetNormalizeName(): void
     {
@@ -122,5 +126,86 @@ final class HeadersCollectionTest extends TestCase
         $collection->sanitize();
         self::assertSame('Value', $collection->get('x-test'));
         self::assertSame('1', $collection->get('x-custom'));
+    }
+
+    #[TestDox('Get возвращает значение по умолчанию при отсутствии')]
+    public function testGetDefaultValue(): void
+    {
+        $collection = new HeadersCollection([]);
+        $collection->sanitize();
+        self::assertSame('1', $collection->get('x-custom', 1));
+    }
+
+    #[TestDox('GetOrFail приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testGetOrFileLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection([]);
+        self::expectException(MissingPropertyException::class);
+        self::expectExceptionMessageIs('Property "x-custom" does not exist.');
+        $collection->getOrFail('X-Custom');
+    }
+
+    #[TestDox('Set приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testSetLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection([]);
+        $collection->set('X-Custom', 1);
+    }
+
+    #[TestDox('Get приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testGetLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection([]);
+        $collection->get('X-Custom', 1);
+    }
+
+    #[TestDox('Unset приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testUnsetLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection([]);
+        $collection->unset('X-Custom');
+    }
+
+    #[TestDox('Reset приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testResetLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection([]);
+        $collection->reset(['X-Custom' => '1']);
+    }
+
+    #[TestDox('Reset приводит ключ в нижний регистр')]
+    #[RunInSeparateProcess]
+    public function testConstructorLowerCaseName(): void
+    {
+        $strToLower = self::getFunctionMock('Vasoft\Joke\Collections', 'strToLower');
+        $strToLower->expects(self::once())
+            ->with('X-Custom')->willReturn('x-custom');
+
+        $collection = new HeadersCollection(['X-Custom' => '1']);
     }
 }

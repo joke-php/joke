@@ -20,7 +20,7 @@ class HeadersCollection extends PropsCollection
      * Возвращает значение заголовка Content-Type.
      */
     public ?string $contentType {
-        get => $this->props['content-type'] ?? null;
+        get => $this->get('content-type');
     }
 
     /**
@@ -30,7 +30,7 @@ class HeadersCollection extends PropsCollection
      */
     public function setContentType(string $value): static
     {
-        $this->props['content-type'] = $value;
+        $this->set('content-type', $value);
 
         return $this;
     }

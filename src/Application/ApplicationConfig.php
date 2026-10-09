@@ -8,7 +8,9 @@ use Vasoft\Joke\Cache\FileCache;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\ConfigException;
 use Vasoft\Joke\Contract\Cache\CacheInterface;
+use Vasoft\Joke\Contract\Mail\TransportInterface;
 use Vasoft\Joke\Http\Response\Response;
+use Vasoft\Joke\Mail\NativeTransport;
 
 class ApplicationConfig extends AbstractConfig
 {
@@ -29,6 +31,13 @@ class ApplicationConfig extends AbstractConfig
      * @var class-string<CacheInterface>
      */
     public private(set) string $cacheClass = FileCache::class;
+
+    /**
+     * Транспорт электронной почты по умолчанию.
+     *
+     * @var class-string<TransportInterface>
+     */
+    public private(set) string $mailTransportClass = NativeTransport::class;
 
     /**
      * Устанавливает путь к файлу маршрутов абсолютный или относительно корня проекта.
@@ -140,6 +149,23 @@ class ApplicationConfig extends AbstractConfig
     {
         $this->guard();
         $this->cacheClass = $cacheClass;
+
+        return $this;
+    }
+
+    /**
+     * Устанавливает тип транспорта электронной почты.
+     *
+     * По умолчанию используется {@see NativeTransport}.
+     *
+     * @return $this
+     *
+     * @throws ConfigException
+     */
+    public function setMailTransportClass(string $className): static
+    {
+        $this->guard();
+        $this->mailTransportClass = $className;
 
         return $this;
     }
