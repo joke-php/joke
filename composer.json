@@ -54,7 +54,8 @@
   "require": {
     "php": "^8.5",
     "ext-dom": "*",
-    "ext-libxml": "*"
+    "ext-libxml": "*",
+    "ext-iconv": "*"
   },
   "require-dev": {
     "voral/version-increment": "^3.2",

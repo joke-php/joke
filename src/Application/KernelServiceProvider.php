@@ -11,6 +11,7 @@ use Vasoft\Joke\Cache\CacheManager;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Contract\Mail\TransportInterface;
 use Vasoft\Joke\Contract\Provider\ConfigurableServiceProviderInterface;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Cors\CorsConfig;
@@ -56,6 +57,10 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
         $routeMiddlewares
             ->addMiddleware(SessionMiddleware::class, StdMiddleware::SESSION->value)
             ->addMiddleware(CsrfMiddleware::class, StdMiddleware::CSRF->value, [StdGroup::WEB->value]);
+        /** @var ApplicationConfig $config */
+        $config = $this->serviceContainer->get(ApplicationConfig::class);
+
+        $this->serviceContainer->registerSingleton(TransportInterface::class, $config->mailTransportClass);
     }
 
     public function provides(): array
@@ -67,6 +72,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             AuthService::class,
             RightsChecker::class,
             CacheManager::class,
+            TransportInterface::class,
         ];
     }
 

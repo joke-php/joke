@@ -5,3 +5,4 @@
 /tests/**/var
 public/assets
 .env.*
+_FoodForThought

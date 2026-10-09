@@ -92,6 +92,7 @@ Joke следует принципу минимализма и модульно�
     - [Аутентификация и авторизация](./base/authentication.md)
     - [Кеширование](./base/cache.md)
     - [Система логирования](./base/logging.md)
+    - [Отправка электронной почты](./base/mail.md)
 - Детали
     - [Реализованные middleware](./detail/middleware.md)
     - [Резолвер зависимостей](./detail/resolver.md)
@@ -102,6 +103,7 @@ Joke следует принципу минимализма и модульно�
     - [HtmlPageResponse: HTML-ответы в Joke](./detail/html-response.md)
     - [Файловая система](./detail/filesystem.md)
     - [Система кеширования](./detail/cache-system.md)
+    - [Разработка собственных транспортов почты](./detail/dev-mail-transport.md)
 - Скелетоны
     - [Минимальный скелетон](./skeleton/minimal.md)
 - Обновление версий
