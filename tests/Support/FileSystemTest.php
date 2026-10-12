@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Vasoft\Joke\Tests\Application;
+namespace Vasoft\Joke\Tests\Support;
 
 use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -56,7 +56,7 @@ final class FileSystemTest extends TestCase
     {
         self::expectException(ConfigException::class);
         $path = $this->basePath . '/nonexistent';
-        self::expectExceptionMessageIs("Path must be an existing directory: '{$path}'.");
+        self::expectExceptionMessageIs("Path must be an existing directory: \"{$path}\".");
         new FileSystem($path);
     }
 
@@ -67,7 +67,7 @@ final class FileSystemTest extends TestCase
         touch($file);
 
         self::expectException(ConfigException::class);
-        self::expectExceptionMessageIs("Path must be an existing directory: '{$file}'.");
+        self::expectExceptionMessageIs("Path must be an existing directory: \"{$file}\".");
         new FileSystem($file);
     }
 
@@ -300,7 +300,7 @@ final class FileSystemTest extends TestCase
         $mkDir = self::getFunctionMock('Vasoft\Joke\Support', 'mkdir');
         $mkDir->expects(self::exactly(1))->willReturn(false);
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Unable to create directory: '{$dir}'.");
+        self::expectExceptionMessageIs("Unable to create directory: \"{$dir}\".");
         $this->fileSystem->ensureDirectory($dir);
     }
 
@@ -431,7 +431,7 @@ final class FileSystemTest extends TestCase
     {
         self::expectException(FileSystemException::class);
         $filename = $this->fileSystem->basePath . 'nonexistent.php';
-        self::expectExceptionMessageIs("Unable to include file: '{$filename}'.");
+        self::expectExceptionMessageIs("Unable to include file: \"{$filename}\".");
         $this->fileSystem->requireFile($filename);
     }
 
@@ -609,7 +609,7 @@ final class FileSystemTest extends TestCase
         file_put_contents($file, 'original');
 
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to write file: '{$file}/'.");
+        self::expectExceptionMessageIs("Failed to write file: \"{$file}/\".");
         $this->fileSystem->writeFile($file . '/', 'data');
     }
 
@@ -624,7 +624,7 @@ final class FileSystemTest extends TestCase
         file_put_contents($file, 'original');
 
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to write file: '{$file}'.");
+        self::expectExceptionMessageIs("Failed to write file: \"{$file}\".");
         $this->fileSystem->writeFileSafe($file, 'data');
 
         self::assertStringEqualsFile($file, 'original');
@@ -714,7 +714,7 @@ final class FileSystemTest extends TestCase
         $fopen->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'open_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to open file for appending: '{$file}'.");
+        self::expectExceptionMessageIs("Failed to open file for appending: \"{$file}\".");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -726,7 +726,7 @@ final class FileSystemTest extends TestCase
         $flock->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'lock_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to acquire lock on file: '{$file}'.");
+        self::expectExceptionMessageIs("Failed to acquire lock on file: \"{$file}\".");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -738,7 +738,7 @@ final class FileSystemTest extends TestCase
         $fwrite->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'write_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to write file: '{$file}'.");
+        self::expectExceptionMessageIs("Failed to write file: \"{$file}\".");
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 

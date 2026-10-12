@@ -107,7 +107,7 @@ class FileSystem
     {
         $realBase = realpath($basePath);
         if (false === $realBase || !is_dir($realBase)) {
-            throw new ConfigException("Path must be an existing directory: '{$basePath}'.");
+            throw new ConfigException("Path must be an existing directory: \"{$basePath}\".");
         }
         $this->isWindows = 'WIN' === strtoupper(substr(PHP_OS, 0, 3));
         $this->basePath = rtrim($realBase, \DIRECTORY_SEPARATOR) . \DIRECTORY_SEPARATOR;
@@ -296,7 +296,7 @@ class FileSystem
     {
         $this->validatePath($directory);
         if (!is_dir($directory) && !mkdir($directory, $permissions, true) && !is_dir($directory)) {
-            throw new FileSystemException("Unable to create directory: '{$directory}'.");
+            throw new FileSystemException("Unable to create directory: \"{$directory}\".");
         }
     }
 
@@ -448,7 +448,7 @@ class FileSystem
         $this->validatePath($file);
         if (!file_exists($file)) {
             if (IncludeType::REQUIRE === $type || IncludeType::REQUIRE_ONCE === $type) {
-                throw new FileSystemException($errorMessage ?? "Unable to include file: '{$file}'.");
+                throw new FileSystemException($errorMessage ?? "Unable to include file: \"{$file}\".");
             }
 
             return false;
@@ -560,7 +560,7 @@ class FileSystem
         $this->validatePath($fileName);
         $result = file_put_contents($fileName, $data, $flags, $context);
         if (false === $result) {
-            throw new FileSystemException("Failed to write file: '{$fileName}'.");
+            throw new FileSystemException("Failed to write file: \"{$fileName}\".");
         }
 
         return $result;
@@ -596,10 +596,81 @@ class FileSystem
         if (false === $result || false === rename($tmp, $fileName)) {
             @unlink($tmp);
 
-            throw new FileSystemException("Failed to write file: '{$fileName}'.");
+            throw new FileSystemException("Failed to write file: \"{$fileName}\".");
         }
 
         return $result;
+    }
+
+    /**
+     * Атомарно модифицирует содержимое файла под эксклюзивной блокировкой.
+     *
+     * Если файл не существует, он будет создан (режим fopen 'c+').
+     * В этом случае модификатор получит пустую строку.
+     * Обработка отсутствия входящего контента — ответственность вызывающего кода.
+     *
+     * Не предназначен для больших файлов: всё содержимое читается в память.
+     *
+     * @param non-empty-string         $fileName абсолютный путь к файлу
+     * @param callable(string): string $modifier принимает текущее содержимое, возвращает новое
+     *
+     * @return string новое содержимое после модификации
+     *
+     * @throws FileSystemException если не удалось открыть/заблокировать/прочитать/записать файл,
+     *                             или модификатор вернул не-string
+     */
+    public function modifyFileSafe(string $fileName, callable $modifier): string
+    {
+        $this->validatePath($fileName);
+        $handle = @fopen($fileName, 'c+');
+        if (false === $handle) {
+            throw new FileSystemException(sprintf('Failed to open file: "%s".', $fileName));
+        }
+        $locked = false;
+
+        try {
+            if (!flock($handle, LOCK_EX)) {
+                throw new FileSystemException(
+                    sprintf('Failed to acquire lock on file: "%s".', $fileName),
+                );
+            }
+            $locked = true;
+            rewind($handle);
+            $content = stream_get_contents($handle);
+            if (false === $content) {
+                throw new FileSystemException(
+                    sprintf('Failed to read file: "%s".', $fileName),
+                );
+            }
+
+            $modifiedContent = $modifier($content);
+            if (!is_string($modifiedContent)) {
+                throw new FileSystemException(
+                    sprintf(
+                        'Modifier must return a string, got: "%s".',
+                        get_debug_type($modifiedContent),
+                    ),
+                );
+            }
+
+            rewind($handle);
+            ftruncate($handle, 0);
+
+            $written = fwrite($handle, $modifiedContent);
+            if (false === $written) {
+                throw new FileSystemException(
+                    sprintf('Failed to write modified content to file: "%s".', $fileName),
+                );
+            }
+            fflush($handle);
+
+            return $modifiedContent;
+        } finally {
+            if ($locked) {
+                flock($handle, LOCK_UN);
+            }
+            fclose($handle);
+        }
     }
 
     /**
@@ -625,13 +696,13 @@ class FileSystem
 
         $handle = @fopen($fileName, $mode, false, $context);
         if (false === $handle) {
-            throw new FileSystemException("Failed to open file for appending: '{$fileName}'.");
+            throw new FileSystemException("Failed to open file for appending: \"{$fileName}\".");
         }
 
         if (!flock($handle, LOCK_EX)) {
             fclose($handle);
 
-            throw new FileSystemException("Failed to acquire lock on file: '{$fileName}'.");
+            throw new FileSystemException("Failed to acquire lock on file: \"{$fileName}\".");
         }
 
         $result = fwrite($handle, $data);
@@ -639,7 +710,7 @@ class FileSystem
         fclose($handle);
 
         if (false === $result) {
-            throw new FileSystemException("Failed to write file: '{$fileName}'.");
+            throw new FileSystemException("Failed to write file: \"{$fileName}\".");
         }
 
         return $result;
