@@ -157,6 +157,11 @@ class NopCache implements CacheInterface
     {
         return true;
     }
+
+    public function modify(string $key, callable $modifier, \DateInterval|int|null $ttl = null): mixed
+    {
+        return true;
+    }
 }
 
 class NopTransport implements TransportInterface

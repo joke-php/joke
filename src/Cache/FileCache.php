@@ -198,7 +198,16 @@ class FileCache implements CacheInterface
             throw new CacheException($e->getMessage(), previous: $e);
         }
 
+        $data = $this->parseData($context);
+        if (false === $data) {
+            $this->delete($key);
+        }
 
+        return $data;
+    }
+
+    private function parseData(string $context): false|array
+    {
         try {
             $data = @unserialize($context, ['allowed_classes' => $this->allowedClasses]);
         } catch (\Throwable) {
@@ -211,8 +220,6 @@ class FileCache implements CacheInterface
             || $this->containsIncompleteClass($data)
             || (null !== $data['expires'] && time() > $data['expires'])
         ) {
-            $this->delete($key);
-
             return false;
         }
 
@@ -287,5 +294,55 @@ class FileCache implements CacheInterface
         }
 
         return $timestamp;
+    }
+
+    /**
+     * Атомарно модифицирует значение в кэше.
+     *
+     * Если ключ не существует, модификатор получит null.
+     * TTL перезапускается при каждой модификации.
+     *
+     * @param string                 $key      Ключ кэша
+     * @param callable(mixed): mixed $modifier Принимает текущее значение (или null), возвращает новое
+     * @param null|\DateInterval|int $ttl      Новый TTL (null = бессрочно)
+     *
+     * @return mixed Новое значение после модификации
+     *
+     * @throws CacheException При ошибках ФС или некорректном ключе
+     */
+    public function modify(string $key, callable $modifier, \DateInterval|int|null $ttl = null): mixed
+    {
+        try {
+            $file = $this->getFileName($key);
+            $expires = $this->calculateExpiration($ttl);
+            $serialized = $this->fs->modifyFileSafe(
+                $file,
+                function (string $context) use ($modifier, $expires): string {
+                    $data = $this->parseData($context);
+                    $currentValue = false === $data ? null : $data['value'];
+
+                    $newValue = $modifier($currentValue);
+
+                    if (is_resource($newValue) || $newValue instanceof \Closure) {
+                        throw new CacheException(
+                            sprintf(
+                                'Modifier returned non-serializable type: "%s".',
+                                get_debug_type($newValue),
+                            ),
+                        );
+                    }
+
+                    return serialize(['value' => $newValue, 'expires' => $expires]);
+                },
+            );
+
+            $result = unserialize($serialized, ['allowed_classes' => $this->allowedClasses]);
+
+            return is_array($result) && array_key_exists('value', $result)
+                ? $result['value']
+                : null;
+        } catch (\Throwable $e) {
+            throw new CacheException($e->getMessage(), previous: $e);
+        }
     }
 }

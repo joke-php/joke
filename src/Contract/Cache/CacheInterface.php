@@ -128,4 +128,19 @@ interface CacheInterface
      * @throws CacheException При ошибках кеширования или некорректном ключе
      */
     public function has(string $key): bool;
+
+    /**
+     * Атомарно модифицирует значение в кэше.
+     *
+     * Гарантирует отсутствие race condition при конкурентном доступе.
+     * Если ключ не существует, модификатор получает null.
+     * TTL перезапускается при каждой модификации.
+     *
+     * @param callable(mixed): mixed $modifier
+     *
+     * @return mixed Новое значение
+     *
+     * @throws CacheException
+     */
+    public function modify(string $key, callable $modifier, \DateInterval|int|null $ttl = null): mixed;
 }
