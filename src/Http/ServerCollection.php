@@ -19,6 +19,11 @@ use Vasoft\Joke\Exceptions\JokeException;
 class ServerCollection extends ReadonlyPropsCollection
 {
     /**
+     * @var null|string IP клиента
+     */
+    private ?string $clientIp = null;
+
+    /**
      * Извлекает и нормализует HTTP-заголовки из серверных переменных.
      *
      * Преобразует ключи вида HTTP_ACCEPT_LANGUAGE → Accept-Language
@@ -263,5 +268,62 @@ class ServerCollection extends ReadonlyPropsCollection
         $portPart = ($port !== $standardPort) ? ':' . $port : '';
 
         return $scheme . '://' . $this->getHost() . $portPart;
+    }
+
+    /**
+     * Возвращает IP-адрес клиента.
+     *
+     * Источники данных (по приоритету):
+     * 1. Заголовок X-Forwarded-For (первый IP из списка)
+     * 2. Заголовок X-Real-IP
+     * 3. Системная переменная REMOTE_ADDR
+     *
+     * @return string IP-адрес или пустая строка, если определить невозможно
+     *
+     * @throws ConversionException При невозможности преобразовать параметр к строке
+     *
+     * @todo Реализовать список доверенных прокси и использовать его для фильтрации
+     *       заголовков X-Forwarded-For/X-Real-IP
+     */
+    public function getClientIp(): string
+    {
+        if (null !== $this->clientIp) {
+            return $this->clientIp;
+        }
+
+        $forwarded = $this->getString('HTTP_X_FORWARDED_FOR', '');
+        if ('' !== $forwarded) {
+            $ips = array_map('trim', explode(',', $forwarded));
+            if ($this->isValidIp($ips[0])) {
+                $this->clientIp = $ips[0];
+
+                return $this->clientIp;
+            }
+        }
+
+        $realIp = $this->getString('HTTP_X_REAL_IP', '');
+        if ($this->isValidIp($realIp)) {
+            $this->clientIp = $realIp;
+
+            return $this->clientIp;
+        }
+
+        $remoteAddr = $this->getString('REMOTE_ADDR', '');
+        $this->clientIp = $this->isValidIp($remoteAddr) ? $remoteAddr : '';
+
+
+        return $this->clientIp;
+    }
+
+    /**
+     * Проверяет корректность IP-адреса (IPv4 или IPv6).
+     *
+     * @param string $ip проверяемый IP-адрес
+     *
+     * @return bool true, если IP валиден
+     */
+    private function isValidIp(string $ip): bool
+    {
+        return '' !== $ip && false !== filter_var($ip, FILTER_VALIDATE_IP);
     }
 }

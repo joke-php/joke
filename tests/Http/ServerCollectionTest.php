@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vasoft\Joke\Tests\Http;
 
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Http\ServerCollection;
 use PHPUnit\Framework\TestCase;
 
@@ -202,5 +203,46 @@ final class ServerCollectionTest extends TestCase
         yield 'Http std port' => [['HTTPS' => 'Off', 'HTTP_HOST' => 'te.com:80'], 'http://te.com'];
         yield 'Https std port' => [['HTTPS' => 'Yes', 'HTTP_HOST' => 'te.com:443'], 'https://te.com'];
         yield 'Https port and not secure port' => [['HTTPS' => 'On', 'HTTP_HOST' => 'te.com:80'], 'https://te.com:80'];
+    }
+
+    #[TestDox('Получает IP из стандартной переменной')]
+    public function testGetIpDirect(): void
+    {
+        $collection = new ServerCollection([
+            'REMOTE_ADDR' => '192.168.1.1',
+        ]);
+        self::assertSame('192.168.1.1', $collection->getClientIp());
+    }
+
+    #[TestDox('Получает IP из X-Forwarded-For')]
+    public function testGetIpForwarded(): void
+    {
+        $collection = new ServerCollection([
+            'REMOTE_ADDR' => '192.168.1.1',
+            'HTTP_X_REAL_IP' => '192.168.1.2',
+            'HTTP_X_FORWARDED_FOR' => '192.168.1.3, 192.168.1.4',
+        ]);
+        self::assertSame('192.168.1.3', $collection->getClientIp());
+    }
+
+    #[TestDox('Получает IP из X-Real-IP')]
+    public function testGetIpReal(): void
+    {
+        $collection = new ServerCollection([
+            'REMOTE_ADDR' => '192.168.1.1',
+            'HTTP_X_REAL_IP' => '192.168.1.2',
+        ]);
+        self::assertSame('192.168.1.2', $collection->getClientIp());
+    }
+
+    #[TestDox('Не использует невалидные IP')]
+    public function testGetIpWrong(): void
+    {
+        $collection = new ServerCollection([
+            'REMOTE_ADDR' => '992.168.1.1',
+            'HTTP_X_REAL_IP' => '992.168.1.2',
+            'HTTP_X_FORWARDED_FOR' => '992.168.1.3',
+        ]);
+        self::assertSame('', $collection->getClientIp());
     }
 }
