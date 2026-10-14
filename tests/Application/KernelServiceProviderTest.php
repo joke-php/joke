@@ -14,6 +14,7 @@ use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Cors\CorsConfig;
 use Vasoft\Joke\Http\Csrf\CsrfConfig;
+use Vasoft\Joke\Http\RateLimiter\RateLimiterConfig;
 use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
 
 /**
@@ -45,5 +46,6 @@ final class KernelServiceProviderTest extends TestCase
         yield [PageBuilderConfig::class];
         yield [CorsConfig::class];
         yield [AuthConfig::class];
+        yield [RateLimiterConfig::class];
     }
 }

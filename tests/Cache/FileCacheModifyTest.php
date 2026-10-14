@@ -6,7 +6,6 @@ namespace Vasoft\Joke\Tests\Cache;
 
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
-use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\TestDox;
 use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Cache\Exceptions\CacheException;

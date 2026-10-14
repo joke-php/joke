@@ -26,6 +26,7 @@ class NativeTransport implements TransportInterface
     {
         return implode(', ', array_map($this->renderAddress(...), $values));
     }
+
     /**
      * Форматирует одиночный адрес для использования в заголовках.
      *

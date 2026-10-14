@@ -11,6 +11,7 @@ use Vasoft\Joke\Cache\CacheManager;
 use Vasoft\Joke\Config\AbstractConfig;
 use Vasoft\Joke\Config\Exceptions\UnknownConfigException;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Contract\Http\RateLimiter\StorageInterface;
 use Vasoft\Joke\Contract\Mail\TransportInterface;
 use Vasoft\Joke\Contract\Provider\ConfigurableServiceProviderInterface;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
@@ -18,6 +19,8 @@ use Vasoft\Joke\Http\Cors\CorsConfig;
 use Vasoft\Joke\Http\Cors\CorsMiddleware;
 use Vasoft\Joke\Http\Csrf\CsrfConfig;
 use Vasoft\Joke\Http\Csrf\CsrfTokenManager;
+use Vasoft\Joke\Http\RateLimiter\RateLimiterConfig;
+use Vasoft\Joke\Http\RateLimiter\Storage\FileStorage;
 use Vasoft\Joke\Http\Response\Html\PageBuilderConfig;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Http\Csrf\CsrfMiddleware;
@@ -43,6 +46,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
         $this->serviceContainer->registerSingleton(AuthService::class, AuthService::class);
         $this->serviceContainer->registerSingleton(RightsChecker::class, RightsChecker::class);
         $this->serviceContainer->registerSingleton(CacheManager::class, CacheManager::class);
+        $this->serviceContainer->registerSingleton(StorageInterface::class, FileStorage::class);
     }
 
     public function boot(): void
@@ -85,6 +89,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             CorsConfig::class,
             PageBuilderConfig::class,
             AuthConfig::class,
+            RateLimiterConfig::class,
         ];
     }
 
@@ -97,6 +102,7 @@ class KernelServiceProvider extends AbstractProvider implements ConfigurableServ
             CorsConfig::class => new CorsConfig(),
             PageBuilderConfig::class => new PageBuilderConfig(),
             AuthConfig::class => new AuthConfig(),
+            RateLimiterConfig::class => new RateLimiterConfig(),
             default => throw new UnknownConfigException($configClass),
         };
     }

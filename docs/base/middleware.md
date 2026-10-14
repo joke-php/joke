@@ -129,6 +129,8 @@ enum StdMiddleware: string
     case SESSION = 'session';     // Управление сессией
     case EXCEPTION = 'exception'; // Обработка исключений
     case CSRF = 'csrf';           // Защита от CSRF-атак
+    case CORS = 'cors';           // Обработка кросс-доменными запросами (CORS) 
+    case RATE_LIMITER = 'rate_limiter'; // Ограничитель количества запросов
 }
 ```
 
