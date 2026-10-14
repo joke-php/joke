@@ -185,7 +185,7 @@ $service = $container->make(fn() => (new ServiceFactory())()); // как про�
 ## 8 `DiContainerInterface` объявлен устаревшим
 
 Метод `has` перенесен из `Vasoft\Joke\Contract\Container\ContainerInspectionInterface` в
-`Vasoft\Joke\Contract\Container\DiContainerInterface`. При этом `ContainerInspectionInterface` объявлен `deprecated`.
+`Vasoft\Joke\Contract\Container\DiContainerInterface`. При этом `ContainerInspectionInterface` удален.
 
 ## 9 Добавлен абстрактный метод 'getContentType' в `Vasoft\Joke\Http\Response\Response`
 
