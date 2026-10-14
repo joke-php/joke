@@ -6,6 +6,8 @@ use Vasoft\Joke\Auth\AuthService;
 use Vasoft\Joke\Auth\Rights\RightsChecker;
 use Vasoft\Joke\Demo\Auth\ApiAuthController;
 use Vasoft\Joke\Demo\Auth\Personal;
+use Vasoft\Joke\Http\RateLimiter\Identifier\IpWithUserAgentIdentifier;
+use Vasoft\Joke\Http\RateLimiter\RateLimiterConfig;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 use Vasoft\Joke\Tests\Fixtures\Controllers\InvokeController;
 use Vasoft\Joke\Routing\Router;
@@ -14,13 +16,17 @@ use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Http\Response\ResponseBuilder;
 use Vasoft\Joke\Auth\AuthMiddleware;
 use Vasoft\Joke\Cache\CacheManager;
+use Vasoft\Joke\Http\RateLimiter\RateLimiterMiddleware;
+use Vasoft\Joke\Support\FileSystem;
+use Vasoft\Joke\Middleware\StdMiddleware;
+use Vasoft\Joke\Contract\Http\RateLimiter\StorageInterface;
 
 /**
  * @var Router $router
  */
 $router->get(
     '/',
-    static function (ResponseBuilder $builder, CacheManager $cacheManager) {
+    static function (ResponseBuilder $builder, CacheManager $cacheManager, FileSystem $fs) {
         $cache = $cacheManager->build('index');
         if ($cache->has('example1')) {
             $cached = $cache->get('example1');
@@ -48,6 +54,20 @@ $router->get(
                     HTML,
             );
     },
+)->addMiddleware(
+    static fn(
+        StorageInterface $storage,
+        RateLimiterConfig $config,
+        ResponseBuilder $builder,
+    ) => new RateLimiterMiddleware(
+        $storage,
+        new IpWithUserAgentIdentifier(),
+        $config,
+        $builder,
+        10,
+        10,
+    ),
+    StdMiddleware::RATE_LIMITER->value,
 );
 $router->get('/personal/login', [Personal::class, 'login']);
 $router->post('/personal/login', [Personal::class, 'checkLogin']);

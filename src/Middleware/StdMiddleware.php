@@ -13,4 +13,5 @@ enum StdMiddleware: string
     case EXCEPTION = 'exception';
     case CSRF = 'csrf';
     case CORS = 'cors';
+    case RATE_LIMITER = 'rate_limiter';
 }

@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http;
 
+use phpmock\phpunit\PHPMock;
 use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use PHPUnit\Framework\Attributes\TestDox;
 use Vasoft\Joke\Http\ServerCollection;
 use PHPUnit\Framework\TestCase;
@@ -16,6 +18,8 @@ use PHPUnit\Framework\TestCase;
  */
 final class ServerCollectionTest extends TestCase
 {
+    use PHPMock;
+
     public function testParseHeaderFromServer(): void
     {
         $agent = 'Mozilla/5.0 ' . date('Y-m-d H:i:s');
@@ -222,6 +226,18 @@ final class ServerCollectionTest extends TestCase
             'HTTP_X_REAL_IP' => '192.168.1.2',
             'HTTP_X_FORWARDED_FOR' => '192.168.1.3, 192.168.1.4',
         ]);
+        self::assertSame('192.168.1.3', $collection->getClientIp());
+    }
+
+    #[TestDox('Кеширует полученный IP')]
+    #[RunInSeparateProcess]
+    public function testGetIpCached(): void
+    {
+        $foo = self::getFunctionMock('Vasoft\Joke\Http', 'array_map');
+        $foo->expects(self::once())->willReturn(['192.168.1.3']);
+        $collection = new ServerCollection(['HTTP_X_FORWARDED_FOR' => '192.168.1.3']);
+        $collection->getClientIp();
+
         self::assertSame('192.168.1.3', $collection->getClientIp());
     }
 
