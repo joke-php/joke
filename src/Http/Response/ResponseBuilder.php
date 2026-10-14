@@ -146,7 +146,7 @@ class ResponseBuilder
      * @throws ServiceNotFoundException  если требующийся сервис не найден
      * @throws ConversionException       в случае ошибок приведения типов
      */
-    private function buildResponse(string $className): Response
+    public function buildResponse(string $className): Response
     {
         /** @var HttpRequest $request */
         $request = $this->serviceContainer->get(Request::class);
