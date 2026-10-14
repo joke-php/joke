@@ -256,3 +256,4 @@ class MyRoute implements RouteInterface {
 - ApplicationConfig::setFileRoues на ApplicationConfig::setFileRoutes
 - ApplicationConfig::getFileRoues на ApplicationConfig::getFileRoutes
 
+## 24 Изменился набор параметров конструктора FileRelatedCache
