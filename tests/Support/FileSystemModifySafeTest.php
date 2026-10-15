@@ -117,10 +117,10 @@ final class FileSystemModifySafeTest extends TestCase
     {
         $fOpen = self::getFunctionMock('Vasoft\Joke\Support', 'fopen');
         $fOpen->expects(self::once())->willReturn(false);
+        $filename = $this->fs->atBase('fail-on-open.txt');
         self::expectException(FileSystemException::class);
         self::expectExceptionMessageIs('Failed to open file: "fail-on-open.txt".');
-
-        $this->fs->modifyFileSafe('fail-on-open.txt', static fn(string $c): string => $c);
+        $this->fs->modifyFileSafe($filename, static fn(string $c): string => $c);
     }
 
     #[TestDox('modifyFileSafe бросает исключение при невозможности блокировки файла')]
@@ -129,10 +129,11 @@ final class FileSystemModifySafeTest extends TestCase
     {
         $fLock = self::getFunctionMock('Vasoft\Joke\Support', 'flock');
         $fLock->expects(self::once())->willReturn(false);
+        $filename = $this->fs->atBase('fail-on-lock.txt');
         self::expectException(FileSystemException::class);
         self::expectExceptionMessageIs('Failed to acquire lock on file: "fail-on-lock.txt".');
 
-        $this->fs->modifyFileSafe('fail-on-lock.txt', static fn(string $c): string => $c);
+        $this->fs->modifyFileSafe($filename, static fn(string $c): string => $c);
     }
 
     #[TestDox('modifyFileSafe бросает исключение при невозможности прочитать файл')]
@@ -141,10 +142,11 @@ final class FileSystemModifySafeTest extends TestCase
     {
         $streamGetContents = self::getFunctionMock('Vasoft\Joke\Support', 'stream_get_contents');
         $streamGetContents->expects(self::once())->willReturn(false);
+        $filename = $this->fs->atBase('fail-on-read.txt');
         self::expectException(FileSystemException::class);
         self::expectExceptionMessageIs('Failed to read file: "fail-on-read.txt".');
 
-        $this->fs->modifyFileSafe('fail-on-read.txt', static fn(string $c): string => $c);
+        $this->fs->modifyFileSafe($filename, static fn(string $c): string => $c);
     }
 
     #[TestDox('modifyFileSafe бросает исключение при невозможности сохранить файл')]
@@ -153,10 +155,11 @@ final class FileSystemModifySafeTest extends TestCase
     {
         $fWrite = self::getFunctionMock('Vasoft\Joke\Support', 'fwrite');
         $fWrite->expects(self::once())->willReturn(false);
+        $filename = $this->fs->atBase('fail-on-write.txt');
         self::expectException(FileSystemException::class);
         self::expectExceptionMessageIs('Failed to write modified content to file: "fail-on-write.txt".');
 
-        $this->fs->modifyFileSafe('fail-on-write.txt', static fn(string $c): string => $c);
+        $this->fs->modifyFileSafe($filename, static fn(string $c): string => $c);
     }
 
     /**

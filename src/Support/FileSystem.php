@@ -624,22 +624,28 @@ class FileSystem
         $this->validatePath($fileName);
         $handle = @fopen($fileName, 'c+');
         if (false === $handle) {
-            throw new FileSystemException(sprintf('Failed to open file: "%s".', $fileName));
+            $messageName = $this->getPathForMessage($fileName);
+
+            throw new FileSystemException(sprintf('Failed to open file: "%s".', $messageName));
         }
         $locked = false;
 
         try {
             if (!flock($handle, LOCK_EX)) {
+                $messageName = $this->getPathForMessage($fileName);
+
                 throw new FileSystemException(
-                    sprintf('Failed to acquire lock on file: "%s".', $fileName),
+                    sprintf('Failed to acquire lock on file: "%s".', $messageName),
                 );
             }
             $locked = true;
             rewind($handle);
             $content = stream_get_contents($handle);
             if (false === $content) {
+                $messageName = $this->getPathForMessage($fileName);
+
                 throw new FileSystemException(
-                    sprintf('Failed to read file: "%s".', $fileName),
+                    sprintf('Failed to read file: "%s".', $messageName),
                 );
             }
 
@@ -659,8 +665,10 @@ class FileSystem
 
             $written = fwrite($handle, $modifiedContent);
             if (false === $written) {
+                $messageName = $this->getPathForMessage($fileName);
+
                 throw new FileSystemException(
-                    sprintf('Failed to write modified content to file: "%s".', $fileName),
+                    sprintf('Failed to write modified content to file: "%s".', $messageName),
                 );
             }
             fflush($handle);
@@ -697,13 +705,16 @@ class FileSystem
 
         $handle = @fopen($fileName, $mode, false, $context);
         if (false === $handle) {
-            throw new FileSystemException("Failed to open file for appending: \"{$fileName}\".");
+            $messageName = $this->getPathForMessage($fileName);
+
+            throw new FileSystemException("Failed to open file for appending: \"{$messageName}\".");
         }
 
         if (!flock($handle, LOCK_EX)) {
             fclose($handle);
+            $messageName = $this->getPathForMessage($fileName);
 
-            throw new FileSystemException("Failed to acquire lock on file: \"{$fileName}\".");
+            throw new FileSystemException("Failed to acquire lock on file: \"{$messageName}\".");
         }
 
         $result = fwrite($handle, $data);
@@ -711,7 +722,9 @@ class FileSystem
         fclose($handle);
 
         if (false === $result) {
-            throw new FileSystemException("Failed to write file: \"{$fileName}\".");
+            $messageName = $this->getPathForMessage($fileName);
+
+            throw new FileSystemException("Failed to write file: \"{$messageName}\".");
         }
 
         return $result;
@@ -738,7 +751,8 @@ class FileSystem
         $result = @file_get_contents($fileName, false, $context, $offset, $length);
         if (false === $result) {
             $error = error_get_last();
-            $message = $error['message'] ?? "Failed to read file: \"{$fileName}\".";
+            $messageName = $this->getPathForMessage($fileName);
+            $message = $error['message'] ?? "Failed to read file: \"{$messageName}\".";
 
             throw new FileSystemException($message);
         }

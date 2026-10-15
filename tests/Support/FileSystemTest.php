@@ -384,7 +384,7 @@ final class FileSystemTest extends TestCase
         $fileGetContents->expects(self::exactly(1))->willReturn(false);
         self::expectException(FileSystemException::class);
         $path = $this->fileSystem->basePath . 'nonexistent.txt';
-        self::expectExceptionMessageIs("Failed to read file: \"{$path}\".");
+        self::expectExceptionMessageIs('Failed to read file: "nonexistent.txt".');
         $this->fileSystem->readFile($path);
     }
 
@@ -714,7 +714,7 @@ final class FileSystemTest extends TestCase
         $fopen->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'open_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to open file for appending: \"{$file}\".");
+        self::expectExceptionMessageIs('Failed to open file for appending: "open_fail.txt".');
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -726,7 +726,7 @@ final class FileSystemTest extends TestCase
         $flock->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'lock_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to acquire lock on file: \"{$file}\".");
+        self::expectExceptionMessageIs('Failed to acquire lock on file: "lock_fail.txt".');
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
@@ -738,7 +738,7 @@ final class FileSystemTest extends TestCase
         $fwrite->expects(self::exactly(1))->willReturn(false);
         $file = $this->fileSystem->basePath . 'write_fail.txt';
         self::expectException(FileSystemException::class);
-        self::expectExceptionMessageIs("Failed to write file: \"{$file}\".");
+        self::expectExceptionMessageIs('Failed to write file: "write_fail.txt".');
         $this->fileSystem->writeFileAppendSafe($file, 'data');
     }
 
