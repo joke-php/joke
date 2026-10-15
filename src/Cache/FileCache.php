@@ -206,6 +206,16 @@ class FileCache implements CacheInterface
         return $data;
     }
 
+    /**
+     * Парсит и валидирует данные из сериализованной строки кэша.
+     *
+     * Проверяет структуру данных, наличие разрешенных классов и срок действия.
+     * Если данные некорректны или истекли, возвращает false.
+     *
+     * @param string $context Сериализованная строка из файла кэша
+     *
+     * @return array{value: mixed, expires: null|int}|false Массив с данными кэша или false при ошибке/истечении срока
+     */
     private function parseData(string $context): false|array
     {
         try {
