@@ -16,10 +16,13 @@
 /postman export-ignore
 /docs export-ignore
 /routes export-ignore
-/demo
-/config
+/demo export-ignore
+/config export-ignore
 
+.gitattributes export-ignore
+.php-cs-fixer.php export-ignore
+.phpstan.neon.dist export-ignore
 CHANGELOG.md export-ignore
 TODO.md export-ignore
 video-idea.md export-ignore
-.env
+.env.* export-ignore
