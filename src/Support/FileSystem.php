@@ -317,15 +317,27 @@ class FileSystem
     public function validatePath(string $path, string $base = ''): void
     {
         $normalized = $this->resolvePath($path, $base);
+        $logicalBase = $this->resolveLogicalBasePath($base);
+
+        if (!(str_starts_with($normalized, $logicalBase)
+            || rtrim($normalized, \DIRECTORY_SEPARATOR) === rtrim($logicalBase, \DIRECTORY_SEPARATOR))) {
+            throw new OutsideFileException(
+                $this->getPathForMessage($path),
+                $this->getBasePathForMessage($logicalBase),
+            );
+        }
+
         $realPath = realpath($normalized);
-        $base = $this->resolveLogicalBasePath($base);
-        if (
-            false !== $realPath
-            && !(str_starts_with($realPath, $base)
-                || $realPath === $base
-                || $realPath === rtrim($base, \DIRECTORY_SEPARATOR))
-        ) {
-            throw new OutsideFileException($this->getPathForMessage($path), $this->getBasePathForMessage($base));
+        if (false !== $realPath) {
+            $realBase = realpath($logicalBase);
+            if (false !== $realBase
+                && !(str_starts_with($realPath, $realBase . \DIRECTORY_SEPARATOR)
+                    || rtrim($realPath, \DIRECTORY_SEPARATOR) === rtrim($realBase, \DIRECTORY_SEPARATOR))) {
+                throw new OutsideFileException(
+                    $this->getPathForMessage($path),
+                    $this->getBasePathForMessage($logicalBase),
+                );
+            }
         }
     }
 
