@@ -277,9 +277,7 @@ final class FileCacheTest extends TestCase
     {
         $unlink = self::getFunctionMock('Vasoft\Joke\Cache', 'unlink');
         $unlink->expects(self::exactly(2))->willReturnCallback(static function (string $name) {
-            static $count = 0;
-            ++$count;
-            if (1 === $count) {
+            if (str_contains($name, md5('beta-ext'))) {
                 return false;
             }
 
