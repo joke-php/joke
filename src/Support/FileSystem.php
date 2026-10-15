@@ -644,6 +644,7 @@ class FileSystem
             }
 
             $modifiedContent = $modifier($content);
+            // @phpstan-ignore function.alreadyNarrowedType
             if (!is_string($modifiedContent)) {
                 throw new FileSystemException(
                     sprintf(
