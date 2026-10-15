@@ -324,9 +324,7 @@ final class FileCacheTest extends TestCase
     {
         $rmdir = self::getFunctionMock('Vasoft\Joke\Cache', 'rmdir');
         $rmdir->expects(self::exactly(3))->willReturnCallback(static function (string $name) {
-            static $count = 0;
-            ++$count;
-            if (3 === $count) {
+            if (str_ends_with($name, '/test')) {
                 return false;
             }
 
