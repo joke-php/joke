@@ -101,23 +101,10 @@ abstract class Response
 
         foreach ($this->cookies as $cookie) {
             $cookieHeader = 'Set-Cookie: ' . $cookie->headerValue();
-            $this->assertNoControlCharacters($cookieHeader);
             header($cookieHeader);
         }
 
         header('HTTP/1.1 ' . $this->status->value . ' ' . $this->status->http());
-    }
-
-    /**
-     * Запрещает управляющие символы (CTL) в значении заголовка.
-     *
-     * HTAB (\t) разрешён: RFC 7230 допускает SP и HTAB внутри field-value.
-     */
-    private function assertNoControlCharacters(string $value, string $context = 'header'): void
-    {
-        if (preg_match('/[\x00-\x08\x0A-\x1F\x7F]/', $value)) {
-            throw new HttpException(sprintf('Invalid "%s" header value: contains control characters.', $context));
-        }
     }
 
     /**
