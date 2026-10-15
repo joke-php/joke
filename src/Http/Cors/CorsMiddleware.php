@@ -69,12 +69,6 @@ class CorsMiddleware implements MiddlewareInterface
             return $next($request);
         }
         $origin = $request->getOrigin();
-        $host = $request->headers->get('Host', '');
-        $isSameOrigin = '' === $origin || $this->isSameOrigin($origin, $host);
-        if ($isSameOrigin) {
-            return $next($request);
-        }
-
         if (!$this->corsConfig->allowedCors || !$this->isOriginAllowed($origin)) {
             return $this->makeErrorResponse($request, ResponseStatus::FORBIDDEN);
         }
@@ -209,36 +203,6 @@ class CorsMiddleware implements MiddlewareInterface
     private function defaultPort(string $scheme): int
     {
         return 'https' === strtolower($scheme) ? 443 : 80;
-    }
-
-    /**
-     * Определяет, является ли запрос same-origin (из того же источника).
-     *
-     * Сравнивает host из заголовка Origin запроса с host из заголовка Host.
-     * Same-origin запросы не требуют CORS-валидации и должны обрабатываться
-     * как обычные HTTP-запросы без дополнительных проверок и заголовков.
-     *
-     * @param string $origin значение заголовка Origin входящего HTTP-запроса
-     * @param string $host   значение заголовка Host входящего HTTP-запроса
-     *
-     * @return bool true если запрос same-origin, false если cross-origin
-     */
-    private function isSameOrigin(string $origin, string $host): bool
-    {
-        $parsedOrigin = parse_url($origin, PHP_URL_HOST);
-        $parsedPort = parse_url($origin, PHP_URL_PORT);
-        $parsedScheme = parse_url($origin, PHP_URL_SCHEME);
-
-        $defaultPorts = ['http' => 80, 'https' => 443];
-        $effectivePort = $parsedPort ?? ($defaultPorts[$parsedScheme] ?? null);
-
-        $originHost = $effectivePort ? "{$parsedOrigin}:{$effectivePort}" : $parsedOrigin;
-
-        if (!str_contains($host, ':') && $parsedScheme) {
-            $host = "{$host}:{$defaultPorts[$parsedScheme]}";
-        }
-
-        return $originHost === $host;
     }
 
     /**
