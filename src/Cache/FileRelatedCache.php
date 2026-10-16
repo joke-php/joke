@@ -62,6 +62,7 @@ class FileRelatedCache implements FileRelatedCacheInterface
         $cacheDir = trim($cacheDir, '\/');
         $hash = md5($srcFilePath);
         $path = $fs->atCache(sprintf('%s/%s', $cacheDir, mb_substr($hash, 0, 2)));
+        $path = $fs->normalizeDir($path);
         $fs->ensureDirectory($path);
         $this->path = $path . $hash . '.' . $extension;
     }
