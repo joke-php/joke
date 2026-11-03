@@ -14,6 +14,7 @@ use Vasoft\Joke\Middleware\MiddlewareDto;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Container\ServiceContainer;
+use Vasoft\Joke\Routing\Exceptions\RouterException;
 
 /**
  * Реализация маршрута HTTP-запроса.
@@ -143,22 +144,30 @@ class Route implements RouteInterface
     /**
      * Компилирует URI-паттерн в регулярное выражение.
      *
-     * Поддерживает параметры с правилами валидации: {name}, {id:int}, {slug:slug}.
+     * Поддерживает:
+     * - параметры с правилами валидации: {name}, {id:int}, {slug:slug}.
+     * - необязательные параметры: /[{section}], /[{section}[/{subsection}]]
      *
      * @return string Скомпилированный шаблон в формате '#^...$#i'
      */
     protected function compilePattern(): string
     {
-        /** @var list<string> $tokens */
-        $tokens = preg_split('/(\{[^}]+\})/', $this->path, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
-        $regex = '';
-        foreach ($tokens as $token) {
-            if (str_starts_with($token, '{') && str_ends_with($token, '}')) {
-                $inner = substr($token, 1, -1);
-                if ('*' === $inner) {
-                    $regex .= '(?P<path>.*)';
+        $parameters = [];
+        $paramCounter = 0;
+        $names = [];
 
-                    continue;
+        $pathWithPlaceholders = preg_replace_callback(
+            '/\{([^}]+)\}/',
+            function ($matches) use (&$parameters, &$paramCounter, &$names) {
+                $inner = $matches[1];
+
+                if ('*' === $inner) {
+                    $names['path'] = true;
+                    $placeholder = "__PARAM_{$paramCounter}__";
+                    $parameters[$placeholder] = '(?P<path>.*)';
+                    ++$paramCounter;
+
+                    return $placeholder;
                 }
 
                 if (str_contains($inner, ':')) {
@@ -167,15 +176,94 @@ class Route implements RouteInterface
                     $name = $inner;
                     $ruleName = 'default';
                 }
-                $rule = $this->rules[$ruleName] ?? $this->rules['default'];
+                if (array_key_exists($name, $names)) {
+                    throw new RouterException(
+                        sprintf(
+                            'Route pattern "%s" contains duplicate parameter "{%s}". Each parameter name must be unique.',
+                            $this->path,
+                            $name,
+                        ),
+                    );
+                }
+                $names[$name] = true;
 
-                $regex .= "(?P<{$name}>{$rule})";
+                $rule = $this->rules[$ruleName] ?? $this->rules['default'];
+                $placeholder = "__PARAM_{$paramCounter}__";
+                $parameters[$placeholder] = "(?P<{$name}>{$rule})";
+                ++$paramCounter;
+
+                return $placeholder;
+            },
+            $this->path,
+        );
+
+        $afterBrackets = $this->parseBrackets($pathWithPlaceholders);
+
+        $parts = preg_split('/(__PARAM_\d+__)/', $afterBrackets, -1, PREG_SPLIT_DELIM_CAPTURE | PREG_SPLIT_NO_EMPTY);
+
+        $regexParts = [];
+        foreach ($parts as $part) {
+            if (preg_match('/^__PARAM_(\d+)__$/', $part)) {
+                $regexParts[] = $parameters[$part];
             } else {
-                $regex .= preg_quote($token, '#');
+                // Экранируем только literal спецсимволы regex (не трогаем ()?:<>!)
+                $escaped = preg_replace('/([.^$*+{}[\]\\\|])/', '\\\$1', $part);
+                $regexParts[] = $escaped;
             }
         }
 
-        return '#^' . $regex . '$#i';
+        $regex = implode('', $regexParts);
+
+        return "#^{$regex}$#i";
+    }
+
+    /**
+     * Рекурсивно обрабатывает квадратные скобки [...].
+     */
+    private function parseBrackets(string $pattern): string
+    {
+        if (!str_contains($pattern, '[')) {
+            return $pattern;
+        }
+        $result = '';
+        $i = 0;
+        $len = strlen($pattern);
+
+        while ($i < $len) {
+            $char = $pattern[$i];
+
+            if ('[' === $char) {
+                // Находим соответствующую закрывающую скобку
+                $depth = 1;
+                $j = $i + 1;
+
+                while ($j < $len && $depth > 0) {
+                    if ('[' === $pattern[$j]) {
+                        ++$depth;
+                    } elseif (']' === $pattern[$j]) {
+                        --$depth;
+                    }
+                    ++$j;
+                }
+
+                if (0 !== $depth) {
+                    throw new JokeException("Unmatched bracket in pattern: {$pattern}");
+                }
+
+                $innerContent = substr($pattern, $i + 1, $j - $i - 2);
+
+                $innerRegex = $this->parseBrackets($innerContent);
+
+                $result .= "(?:{$innerRegex})?";
+
+                $i = $j;
+            } else {
+                $result .= $char;
+                ++$i;
+            }
+        }
+
+        return $result;
     }
 
     /**

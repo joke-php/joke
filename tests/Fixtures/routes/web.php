@@ -94,6 +94,14 @@ $router->get('/shop', [SingleController::class, 'index']);
 $router->get('/shop/info', SingleController::info(...));
 $router->get('/shop/infoNew', SingleController::class . '::info');
 $router->get('/shop/{filter}', [SingleController::class, 'find']);
+$router->get(
+    '/example[/{section}[/{subsection}[/{topicId}]]]',
+    static fn(string $section, string $subsection, int $topicId) => print_r([
+        $section,
+        $subsection,
+        $topicId,
+    ], true),
+);
 
 $routeHandler = static fn(HttpRequest $request) => [
     'id' => spl_object_id($request),
