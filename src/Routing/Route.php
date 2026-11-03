@@ -187,7 +187,16 @@ class Route implements RouteInterface
                 }
                 $names[$name] = true;
 
-                $rule = $this->rules[$ruleName] ?? $this->rules['default'];
+                $rule = $this->rules[$ruleName]
+                    ?? throw new RouterException(
+                        sprintf(
+                            'Unknown parameter rule "%s" for parameter "{%s}" in route pattern "%s". Known rules: %s.',
+                            $ruleName,
+                            $name,
+                            $this->path,
+                            implode(', ', array_keys($this->rules)),
+                        ),
+                    );
                 $placeholder = "__PARAM_{$paramCounter}__";
                 $parameters[$placeholder] = "(?P<{$name}>{$rule})";
                 ++$paramCounter;
