@@ -7,7 +7,7 @@ namespace Vasoft\Joke\Routing\Exceptions;
 use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 
-class NotFoundException extends JokeException
+class NotFoundException extends RouterException
 {
     public function __construct(string $message = '', int $code = 0, ?\Throwable $previous = null)
     {
