@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Routing;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Application\Application;
+use Vasoft\Joke\Container\ServiceContainer;
 use Vasoft\Joke\Foundation\Request;
 use Vasoft\Joke\Http\HttpMethod;
 use Vasoft\Joke\Http\HttpRequest;
 use Vasoft\Joke\Routing\Exceptions\NotFoundException;
+use Vasoft\Joke\Routing\Exceptions\RouterException;
 use Vasoft\Joke\Routing\Router;
-use PHPUnit\Framework\TestCase;
-use Vasoft\Joke\Container\ServiceContainer;
 
 /**
  * @internal
@@ -178,6 +181,46 @@ final class RouterTest extends TestCase
         self::expectException(NotFoundException::class);
         self::expectExceptionMessageIs('Route not found');
 
+        $router->dispatch($request);
+    }
+
+    #[TestDox('Роутер обрабатывает не обязательные параметры')]
+    #[DataProvider('provideNonRequiredParamsCases')]
+    public function testNonRequiredParams(string $url, array $expect): void
+    {
+        $router = new Router(self::$serviceContainer);
+        $router->get('/{root}[/{section:slug}[/{topic:int}]]', static fn() => 'get response', 'route-get');
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => $url]);
+        $router->dispatch($request);
+        self::assertSame($expect, $request->props->getAll());
+    }
+
+    public static function provideNonRequiredParamsCases(): iterable
+    {
+        yield ['/forum', ['root' => 'forum']];
+        yield ['/forum/php', ['root' => 'forum', 'section' => 'php']];
+        yield ['/forum/js/134', ['root' => 'forum', 'section' => 'js', 'topic' => '134']];
+    }
+
+    #[TestDox('Маршрут бросает исключение если дублируется имя параметра')]
+    public function testNotRequiredDuplicateParams(): void
+    {
+        $router = new Router(self::$serviceContainer);
+        $router->get('/{root}[/{root:slug}]', static fn() => 'get response', 'route-get');
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/news']);
+        self::expectException(RouterException::class);
+        self::expectExceptionMessageIs('Route pattern "/{root}[/{root:slug}]" contains duplicate parameter "{root}". Each parameter name must be unique.');
+        $router->dispatch($request);
+    }
+
+    #[TestDox('Маршрут бросает исключение если дублируется имя параметра')]
+    public function testNotRequiredUnmatchedBracket(): void
+    {
+        $router = new Router(self::$serviceContainer);
+        $router->get('/[{root}[/{section:slug}]', static fn() => 'get response', 'route-get');
+        $request = new HttpRequest(server: ['REQUEST_METHOD' => 'GET', 'REQUEST_URI' => '/news']);
+        self::expectException(RouterException::class);
+        self::expectExceptionMessageIs('Unmatched bracket in pattern: /[{root}[/{section:slug}]');
         $router->dispatch($request);
     }
 }

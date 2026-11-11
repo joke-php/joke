@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Routing\Exceptions;
 
-use Vasoft\Joke\Exceptions\JokeException;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 
 class NotFoundException extends RouterException

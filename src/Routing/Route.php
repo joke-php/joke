@@ -256,7 +256,7 @@ class Route implements RouteInterface
                 }
 
                 if (0 !== $depth) {
-                    throw new JokeException("Unmatched bracket in pattern: {$pattern}");
+                    throw new RouterException("Unmatched bracket in pattern: {$this->path}");
                 }
 
                 $innerContent = substr($pattern, $i + 1, $j - $i - 2);
