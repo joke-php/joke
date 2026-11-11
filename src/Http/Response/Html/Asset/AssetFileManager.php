@@ -119,7 +119,7 @@ class AssetFileManager
      */
     private function checkFile(string $source, string $destination, int $timestamp): void
     {
-        if (file_exists($destination) && filemtime($destination) + 60 >= $timestamp) {
+        if (file_exists($destination) && filemtime($destination) + 3 >= $timestamp) {
             return;
         }
 
