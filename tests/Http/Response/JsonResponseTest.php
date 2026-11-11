@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Vasoft\Joke\Tests\Http\Response;
 
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\TestDox;
+use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Http\Cookies\CookieCollection;
 use Vasoft\Joke\Http\Cookies\CookieConfig;
 use Vasoft\Joke\Http\Response\JsonResponse;
-use PHPUnit\Framework\TestCase;
 use Vasoft\Joke\Http\Response\ResponseStatus;
 
 /**
@@ -46,5 +48,31 @@ final class JsonResponseTest extends TestCase
         $response->setBody($body);
         self::assertSame($body, $response->getBody());
         self::assertSame(json_encode($body), $response->getBodyAsString());
+    }
+
+    #[TestDox('Set body принимает различные типы данных и преобразует их')]
+    #[DataProvider('provideSetBodyCases')]
+    public function testSetBody(mixed $body, array $expected): void
+    {
+        $response = new JsonResponse(self::$cookies);
+        $response->setBody($body);
+        self::assertSame($expected, $response->getBody());
+    }
+
+    public static function provideSetBodyCases(): iterable
+    {
+        yield [1, ['message' => '1']];
+        yield [null, []];
+        yield ['', []];
+        yield [new Example(['test' => '1']), ['test' => '1']];
+    }
+}
+class Example implements \JsonSerializable
+{
+    public function __construct(private readonly array $data) {}
+
+    public function jsonSerialize(): mixed
+    {
+        return $this->data;
     }
 }

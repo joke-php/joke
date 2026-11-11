@@ -30,7 +30,13 @@ class JsonResponse extends Response
      */
     public function setBody($body): static
     {
-        $this->body = $body;
+
+        $this->body = match (true) {
+            is_array($body) => $body,
+            $body instanceof \JsonSerializable => $body->jsonSerialize(),
+            '' === $body || null === $body => [],
+            default => ['message' => (string) $body],
+        };
 
         return $this;
     }

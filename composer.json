@@ -23,7 +23,7 @@
     ],
     "scripts": {
         "dev": "php -S localhost:8000 -t public/",
-        "test": "php vendor/bin/phpunit --display-warnings --display-all-issues",
+        "test": "XDEBUG_MODE=coverage php vendor/bin/phpunit --display-warnings --display-all-issues",
         "test:dox": "php vendor/bin/phpunit --display-warnings --display-all-issues --testdox",
         "vi:major": "php ./vendor/bin/vs-version-increment major",
         "vi:minor": "php ./vendor/bin/vs-version-increment minor",
