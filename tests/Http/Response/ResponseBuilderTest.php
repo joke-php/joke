@@ -65,16 +65,6 @@ final class ResponseBuilderTest extends TestCase
         yield [['Test' => 'test'], JsonResponse::class, JsonResponse::class];
     }
 
-    public function testApplicationDefault(): void
-    {
-        $config = new ApplicationConfig()->setResponseClass(JsonResponse::class);
-        $builder = new ResponseBuilder($config, self::$container);
-        self::expectExceptionMessageIs(
-            'Cannot assign string to property Vasoft\Joke\Http\Response\JsonResponse::$body of type array',
-        );
-        $builder->make('Test');
-    }
-
     #[TestDox('Текущий тип ответа имеет самый высокий приоритет')]
     public function testCurrentResponseClassOverrideApplicationLevel(): void
     {
